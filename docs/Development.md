@@ -88,5 +88,72 @@ TODO:
 
 Query the exchange rate data from the bundesbank
 
+SDMX = Statistical Data and Metadata eXchange
 
+An international standard for Exchanging statistical data between institutions used by Banks etc.
+
+Bundesbank SDMX Webservice endpoint
+
+https://api.statistiken.bundesbank.de/doc/index.html?urls.primaryName=Deutsche+REST+API+Dokumentation
+
+Documentation on the GET endpoint needed to get EUR-FX data
+
+https://www.bundesbank.de/dynamic/action/en/statistics/time-series-databases/help-for-sdmx-web-service/web-service-interface-data/855914/web-service-interface-data
+
+Base API URL:
+
+https://api.statistiken.bundesbank.de/
+
+REST End point to get the statstical time series data
+
+/rest/data/{flowRef}/{key}
+
+
+Dataflow ID/ flowRef =  BBEX3
+
+Key = D..EUR.BB.AC.000
+
+Key meanings
+
+- D
+Frequency = Daily exchange rates.
+
+- . (empty second position)
+
+All currencies as leaving a dimension empty is a wildcard.
+
+So instead of:
+
+D.USD.EUR.BB.AC.000
+D.GBP.EUR.BB.AC.000
+
+Give all currencies vs EUR.
+
+- EUR
+
+This is the base currency.
+
+Rates are expressed as:
+1 EUR = X foreign currency
+
+- BB
+
+Source identifier from Bundesbank dataset.
+
+- AC
+
+Rate type AC = Average rate
+
+- 000 Code
+
+
+Usage guide:
+
+URL: https://api.statistiken.bundesbank.de/rest/data/{flowRef}/{key}?startPeriod=YYYY-MM-DD&endPeriod=YYYY-MM-DD&format=sdmx_json
+
+URL: https://api.statistiken.bundesbank.de/rest/data/BBEX3/D..EUR.BB.AC.000?format=sdmx_json
+
+This can cause a long wait time, so need to the specify dates to keep response time managable.
+
+https://api.statistiken.bundesbank.de/rest/data/BBEX3/D..EUR.BB.AC.000?startPeriod=2026-01-01&endPeriod=2026-01-31&format=sdmx_json
 
