@@ -83,3 +83,10 @@ GET /conversions/to-eur?date&currency&amount
 
 TODO:
 - API versioning 
+
+# Exchange rate client query
+
+Query the exchange rate data from the bundesbank
+
+
+
