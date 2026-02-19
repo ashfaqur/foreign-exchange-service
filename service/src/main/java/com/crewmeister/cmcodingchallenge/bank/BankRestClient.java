@@ -1,11 +1,16 @@
 package com.crewmeister.cmcodingchallenge.bank;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.http.client.ClientHttpResponse;
 
+import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.util.Objects;
 
 public class BankRestClient {
 
@@ -15,11 +20,30 @@ public class BankRestClient {
 
     private final RestClient restClient;
 
-    public BankRestClient(RestClient restClient){
+    public BankRestClient(RestClient restClient) {
         this.restClient = restClient;
     }
 
-    public URI buildGeocodeRequestFullUri(LocalDate start, LocalDate end) {
+    public JsonNode fetchRates(LocalDate start, LocalDate end) {
+        validateRange(start, end);
+
+        URI requestUri = buildRequestUri(start, end);
+        return restClient
+                .get()
+                .uri(requestUri)
+                .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError, (req, res) -> {
+                    throw new BundesbankClientException(
+                            res.getStatusCode().value(), extractErrorResponseBodyInfo(res));
+                })
+                .onStatus(HttpStatusCode::is5xxServerError, (req, res) -> {
+                    throw new BundesbankServerException(
+                            res.getStatusCode().value(), extractErrorResponseBodyInfo(res));
+                })
+                .body(JsonNode.class);
+    }
+
+    public URI buildRequestUri(LocalDate start, LocalDate end) {
         return UriComponentsBuilder.fromUriString(BASE_URL)
                 .path(REQUEST_PATH)
                 .queryParam("format", RESPONSE_FORMAT)
@@ -27,5 +51,22 @@ public class BankRestClient {
                 .queryParam("endPeriod", end)
                 .build()
                 .toUri();
+    }
+
+    private static void validateRange(LocalDate start, LocalDate end) {
+        Objects.requireNonNull(start, "start date must not be null");
+        Objects.requireNonNull(end, "end date must not be null");
+        if (end.isBefore(start)) {
+            throw new IllegalArgumentException("end date must be greater than or equal to start date");
+        }
+    }
+
+    private static String extractErrorResponseBodyInfo(ClientHttpResponse response) {
+        try {
+            byte[] bytes = response.getBody().readAllBytes();
+            return new String(bytes, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            return "<unable to read error body>";
+        }
     }
 }
