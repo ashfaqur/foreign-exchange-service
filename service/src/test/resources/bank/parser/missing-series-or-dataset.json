@@ -1,0 +1,15 @@
+{
+  "data": {
+    "structure": {
+      "dimensions": {
+        "series": [
+          {"id": "BBK_STD_CURRENCY", "values": [{"id": "USD"}]}
+        ],
+        "observation": [
+          {"id": "TIME_PERIOD", "values": [{"id": "2026-02-18"}]}
+        ]
+      }
+    },
+    "dataSets": []
+  }
+}

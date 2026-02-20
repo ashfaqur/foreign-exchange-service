@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
+import java.io.InputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -17,32 +18,8 @@ class BankResponseParserTest {
     private final BankResponseParser parser = new BankResponseParser();
 
     @Test
-    void parseRates_happyPath_returnsRows() throws Exception {
-        JsonNode payload = json("""
-                {
-                  "data": {
-                    "structure": {
-                      "dimensions": {
-                        "series": [
-                          {"id":"FREQ","values":[{"id":"D"}]},
-                          {"id":"BBK_STD_CURRENCY","values":[{"id":"USD"},{"id":"GBP"}]}
-                        ],
-                        "observation": [
-                          {"id":"TIME_PERIOD","values":[{"id":"2026-02-18"},{"id":"2026-02-19"}]}
-                        ]
-                      }
-                    },
-                    "dataSets": [
-                      {
-                        "series": {
-                          "0:0:0:0:0:0": {"observations": {"0":[1.2], "1":[1.3]}},
-                          "0:1:0:0:0:0": {"observations": {"0":["0.88"]}}
-                        }
-                      }
-                    ]
-                  }
-                }
-                """);
+    void parseValidInput() throws Exception {
+        JsonNode payload = jsonFromResource("bank/parser/happy-path.json");
 
         List<ExchangeRateRow> rates = parser.parseRates(payload);
 
@@ -54,39 +31,8 @@ class BankResponseParserTest {
     }
 
     @Test
-    void parseRates_invalidObservationValues_areSkipped() throws Exception {
-        JsonNode payload = json("""
-                {
-                  "data": {
-                    "structure": {
-                      "dimensions": {
-                        "series": [
-                          {"id":"FREQ","values":[{"id":"D"}]},
-                          {"id":"BBK_STD_CURRENCY","values":[{"id":"USD"}]}
-                        ],
-                        "observation": [
-                          {"id":"TIME_PERIOD","values":[{"id":"2026-02-18"},{"id":"2026-02-19"},{"id":"2026-02-20"},{"id":"2026-02-21"},{"id":"2026-02-22"}]}
-                        ]
-                      }
-                    },
-                    "dataSets": [
-                      {
-                        "series": {
-                          "0:0:0:0:0:0": {
-                            "observations": {
-                              "0":[null],
-                              "1":["null"],
-                              "2":[" "],
-                              "3":["abc"],
-                              "4":["1.25"]
-                            }
-                          }
-                        }
-                      }
-                    ]
-                  }
-                }
-                """);
+    void parseRatesInvalidObservationValuesAreSkipped() throws Exception {
+        JsonNode payload = jsonFromResource("bank/parser/invalid-observation-values.json");
 
         List<ExchangeRateRow> rates = parser.parseRates(payload);
 
@@ -96,93 +42,24 @@ class BankResponseParserTest {
     }
 
     @Test
-    void parseRates_malformedSeriesKey_isSkipped() throws Exception {
-        JsonNode payload = json("""
-                {
-                  "data": {
-                    "structure": {
-                      "dimensions": {
-                        "series": [
-                          {"id":"FREQ","values":[{"id":"D"}]},
-                          {"id":"BBK_STD_CURRENCY","values":[{"id":"USD"}]}
-                        ],
-                        "observation": [
-                          {"id":"TIME_PERIOD","values":[{"id":"2026-02-18"}]}
-                        ]
-                      }
-                    },
-                    "dataSets": [
-                      {
-                        "series": {
-                          "0:x:0:0:0:0": {"observations": {"0":[1.2]}}
-                        }
-                      }
-                    ]
-                  }
-                }
-                """);
+    void parseRatesMalformedSeriesKeyIsSkipped() throws Exception {
+        JsonNode payload = jsonFromResource("bank/parser/malformed-series-key.json");
 
         List<ExchangeRateRow> rates = parser.parseRates(payload);
         assertThat(rates).isEmpty();
     }
 
     @Test
-    void parseRates_malformedObservationIndex_isSkipped() throws Exception {
-        JsonNode payload = json("""
-                {
-                  "data": {
-                    "structure": {
-                      "dimensions": {
-                        "series": [
-                          {"id":"FREQ","values":[{"id":"D"}]},
-                          {"id":"BBK_STD_CURRENCY","values":[{"id":"USD"}]}
-                        ],
-                        "observation": [
-                          {"id":"TIME_PERIOD","values":[{"id":"2026-02-18"}]}
-                        ]
-                      }
-                    },
-                    "dataSets": [
-                      {
-                        "series": {
-                          "0:0:0:0:0:0": {"observations": {"x":[1.2]}}
-                        }
-                      }
-                    ]
-                  }
-                }
-                """);
+    void parseRatesMalformedObservationIndexIsSkipped() throws Exception {
+        JsonNode payload = jsonFromResource("bank/parser/malformed-observation-index.json");
 
         List<ExchangeRateRow> rates = parser.parseRates(payload);
         assertThat(rates).isEmpty();
     }
 
     @Test
-    void parseRates_malformedDate_isSkippedByIndexAlignment() throws Exception {
-        JsonNode payload = json("""
-                {
-                  "data": {
-                    "structure": {
-                      "dimensions": {
-                        "series": [
-                          {"id":"FREQ","values":[{"id":"D"}]},
-                          {"id":"BBK_STD_CURRENCY","values":[{"id":"USD"}]}
-                        ],
-                        "observation": [
-                          {"id":"TIME_PERIOD","values":[{"id":"bad-date"},{"id":"2026-02-19"}]}
-                        ]
-                      }
-                    },
-                    "dataSets": [
-                      {
-                        "series": {
-                          "0:0:0:0:0:0": {"observations": {"0":[1.2], "1":[1.3]}}
-                        }
-                      }
-                    ]
-                  }
-                }
-                """);
+    void parseRatesMalformedDateIsSkippedByIndexAlignment() throws Exception {
+        JsonNode payload = jsonFromResource("bank/parser/malformed-date.json");
 
         List<ExchangeRateRow> rates = parser.parseRates(payload);
 
@@ -192,59 +69,34 @@ class BankResponseParserTest {
     }
 
     @Test
-    void parseRates_missingDimensions_returnsEmpty() throws Exception {
-        JsonNode payload = json("""
-                {
-                  "data": {
-                    "structure": {
-                      "dimensions": {
-                        "series": [],
-                        "observation": []
-                      }
-                    },
-                    "dataSets": [
-                      {"series": {"0:0:0:0:0:0": {"observations":{"0":[1.2]}}}}
-                    ]
-                  }
-                }
-                """);
+    void parseRatesMissingDimensionsReturnsEmpty() throws Exception {
+        JsonNode payload = jsonFromResource("bank/parser/missing-dimensions.json");
 
         List<ExchangeRateRow> rates = parser.parseRates(payload);
         assertThat(rates).isEmpty();
     }
 
     @Test
-    void parseRates_missingSeriesOrDataset_returnsEmpty() throws Exception {
-        JsonNode payload = json("""
-                {
-                  "data": {
-                    "structure": {
-                      "dimensions": {
-                        "series": [
-                          {"id":"BBK_STD_CURRENCY","values":[{"id":"USD"}]}
-                        ],
-                        "observation": [
-                          {"id":"TIME_PERIOD","values":[{"id":"2026-02-18"}]}
-                        ]
-                      }
-                    },
-                    "dataSets": []
-                  }
-                }
-                """);
+    void parseRatesMissingSeriesOrDatasetReturnsEmpty() throws Exception {
+        JsonNode payload = jsonFromResource("bank/parser/missing-series-or-dataset.json");
 
         List<ExchangeRateRow> rates = parser.parseRates(payload);
         assertThat(rates).isEmpty();
     }
 
     @Test
-    void parseRates_nullOrInvalidRoot_returnsEmpty() {
+    void parseRatesNullOrInvalidRootReturnsEmpty() {
         assertThat(parser.parseRates(null)).isEmpty();
         assertThat(parser.parseRates(MAPPER.nullNode())).isEmpty();
         assertThat(parser.parseRates(MAPPER.createArrayNode())).isEmpty();
     }
 
-    private static JsonNode json(String value) throws IOException {
-        return MAPPER.readTree(value);
+    private static JsonNode jsonFromResource(String resourcePath) throws IOException {
+        try (InputStream in = BankResponseParserTest.class.getClassLoader().getResourceAsStream(resourcePath)) {
+            if (in == null) {
+                throw new IOException("Missing test resource: " + resourcePath);
+            }
+            return MAPPER.readTree(in);
+        }
     }
 }

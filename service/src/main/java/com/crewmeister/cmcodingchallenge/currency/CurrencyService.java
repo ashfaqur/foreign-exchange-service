@@ -19,7 +19,7 @@ public class CurrencyService {
     }
 
     public List<String> getCurrencies() {
-        this.syncService.syncLastDaysIfStale(2);
+        this.syncService.syncLastDaysIfStale(30);
         return repo.findDistinctCurrencies();
     }
 }
