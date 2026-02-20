@@ -25,9 +25,7 @@ public class BankResponseParser {
         if (seriesNode.isMissingNode() || !seriesNode.isObject()) {
             return List.of();
         }
-
         List<ExchangeRateRow> out = new ArrayList<>();
-
         Iterator<Map.Entry<String, JsonNode>> seriesIt = seriesNode.fields();
         while (seriesIt.hasNext()) {
             var entry = seriesIt.next();
@@ -35,27 +33,39 @@ public class BankResponseParser {
             JsonNode series = entry.getValue();
 
             Integer currencyIndex = parseCurrencyIndex(seriesKey); // position 1
-            if (currencyIndex == null || currencyIndex < 0 || currencyIndex >= currencies.size()) continue;
+            if (currencyIndex == null || currencyIndex < 0 || currencyIndex >= currencies.size()){
+                continue;
+            }
             String currency = currencies.get(currencyIndex);
 
             JsonNode observations = series.path("observations");
-            if (!observations.isObject()) continue;
-
+            if (!observations.isObject()){
+                continue;
+            }
             Iterator<Map.Entry<String, JsonNode>> obsIt = observations.fields();
             while (obsIt.hasNext()) {
                 var obsEntry = obsIt.next();
-                int timeIdx = Integer.parseInt(obsEntry.getKey());
-                if (timeIdx < 0 || timeIdx >= dates.size()) continue;
-
+                Integer timeIdx = tryParseInt(obsEntry.getKey());
+                if (timeIdx == null || timeIdx < 0 || timeIdx >= dates.size()){
+                    continue;
+                }
                 JsonNode obsArray = obsEntry.getValue();
-                if (!obsArray.isArray() || obsArray.isEmpty()) continue;
-
-                BigDecimal rate = new BigDecimal(obsArray.get(0).asText());
+                BigDecimal rate = extractRate(obsArray);
+                if (rate == null){
+                    continue;
+                }
                 out.add(new ExchangeRateRow(dates.get(timeIdx), currency, rate));
             }
         }
-
         return out;
+    }
+
+    private static Integer tryParseInt(String s) {
+        try {
+            return Integer.parseInt(s);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     private static Integer parseCurrencyIndex(String seriesKey) {
@@ -90,6 +100,37 @@ public class BankResponseParser {
             if (id.equals(dimsArray.get(i).path("id").asText())) return i;
         }
         throw new IllegalArgumentException("Missing dimension: " + id);
+    }
+
+    private static BigDecimal extractRate(JsonNode obsArray) {
+        if (obsArray == null || !obsArray.isArray() || obsArray.isEmpty()) {
+            return null;
+        }
+        JsonNode value = obsArray.get(0);
+        if (value == null || value.isNull()) {
+            return null;
+        }
+        if (value.isNumber()) {
+            return value.decimalValue();
+        }
+        if (value.isTextual()) {
+            String text = value.textValue();
+            if (text == null){
+                return null;
+            }
+            text = text.trim();
+            if (text.isEmpty() || text.equalsIgnoreCase("null")) {
+                return null;
+            }
+            try {
+                return new BigDecimal(text);
+            } catch (NumberFormatException ignored) {
+                // ignore non numerical value
+                return null;
+            }
+        }
+        // Unexpected type
+        return null;
     }
 
 }
