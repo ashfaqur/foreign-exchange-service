@@ -2,6 +2,7 @@ package com.crewmeister.cmcodingchallenge.bank;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.http.client.ClientHttpResponse;
@@ -12,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.Objects;
 
+@Component
 public class BankRestClient {
 
     private static final String BASE_URL = "https://api.statistiken.bundesbank.de";
