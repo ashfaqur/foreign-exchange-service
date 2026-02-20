@@ -6,13 +6,11 @@ import com.crewmeister.cmcodingchallenge.dto.RatesResponse;
 import com.crewmeister.cmcodingchallenge.model.ExchangeRateEntity;
 import com.crewmeister.cmcodingchallenge.model.ExchangeRateRepository;
 import com.crewmeister.cmcodingchallenge.sync.SyncService;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 public class CurrencyService {
@@ -40,17 +38,17 @@ public class CurrencyService {
     public RatesResponse getRates(LocalDate start, LocalDate end, String currency, int limit, int offset) {
         validateRatesRequest(start, end, currency, limit, offset);
         this.syncService.syncLastDaysIfStale();
-        currency = currency.trim().toUpperCase();
-        Pageable pageable = PageRequest.of(
-                offset / limit,
-                limit,
-                Sort.by("id.date").ascending().and(Sort.by("id.currency").ascending())
-        );
-        long total = this.repo.countRates(start, end, currency);
-        List<ExchangeRateEntity> rows = this.repo.findRates(start, end, currency, pageable);
+        String normalizedCurrency = normalizeCurrency(currency);
+        long total = this.repo.countRates(start, end, normalizedCurrency);
+        if (offset >= total) {
+            return new RatesResponse("EUR", start, end, List.of(), new PageMeta(limit, offset, total));
+        }
+        List<ExchangeRateEntity> rows =
+                this.repo.findRates(start, end, normalizedCurrency, limit, offset);
         List<RateItem> items = rows.stream()
-                .map(entity -> new RateItem(entity.getDate(), entity.getCurrency(), entity.getRate()))
+                .map(e -> new RateItem(e.getDate(), e.getCurrency(), e.getRate()))
                 .toList();
+
         return new RatesResponse("EUR", start, end, items, new PageMeta(limit, offset, total));
     }
 
@@ -64,11 +62,18 @@ public class CurrencyService {
         if (offset < 0) {
             throw new IllegalArgumentException("offset must be >= 0");
         }
-        if (currency == null || currency.isBlank()){
-            throw new IllegalArgumentException("currency cannot be empty");
+        if (currency != null && !currency.isBlank()) {
+            String c = currency.trim();
+            if (!c.matches("^[A-Za-z]{3}$")) {
+                throw new IllegalArgumentException("currency must be a 3-letter ISO code");
+            }
         }
-        if (!currency.trim().matches("^[A-Za-z]{3}$")) {
-            throw new IllegalArgumentException("currency must be a 3-letter ISO code");
+    }
+
+    private String normalizeCurrency(String currency) {
+        if (currency == null || currency.isBlank()) {
+            return null;
         }
+        return currency.trim().toUpperCase(Locale.ROOT);
     }
 }
