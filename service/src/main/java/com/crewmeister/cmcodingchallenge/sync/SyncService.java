@@ -18,9 +18,10 @@ import java.util.concurrent.locks.ReentrantLock;
 @Service
 public class SyncService {
 
-    private static final Logger log = LoggerFactory.getLogger(SyncService.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SyncService.class);
 
     private static final int DEFAULT_DAYS = 30;
+    private static final int MAX_DAYS = 90;
     private static final Duration MIN_SYNC_INTERVAL = Duration.ofHours(6);
     private static final int DATA_FRESH_DAYS = 2;
 
@@ -35,28 +36,31 @@ public class SyncService {
         this.repo = repo;
     }
 
-    @Transactional
+
     public void syncLastDaysIfStale() {
         syncLastDaysIfStale(DEFAULT_DAYS);
     }
-
-    @Transactional
+    
     public void syncLastDaysIfStale(int days) {
+        if (days <= 0 ){
+            throw new IllegalArgumentException("days must be greater than zero");
+        }
+         if (days > MAX_DAYS ){
+            throw new IllegalArgumentException("days cannot be greater than {}".formatted(MAX_DAYS));
+        }
+
         if (!this.lock.tryLock()){
             // prevent multiple threads requesting data update at the same time
-            log.debug("Sync skipped as another sync is already running");
+            LOG.debug("Sync skipped as another sync is already running");
             return;
         }
-        if (Instant.now().isBefore(this.lastSyncAttempt.plus(MIN_SYNC_INTERVAL))) {
-            // no need to sync if already done recently (rate limit)
-            return;
-        }
+    
         try {
             Instant now = Instant.now();
             Instant timeForNextSync = this.lastSyncAttempt.plus(MIN_SYNC_INTERVAL);
             if (now.isBefore(timeForNextSync)) {
                 // no need to sync if already done recently (rate limit)
-                log.debug("Sync skipped as rate-limited until {}", timeForNextSync);
+                LOG.debug("Sync skipped as rate-limited until {}", timeForNextSync);
                 return;
             }
 
@@ -67,13 +71,13 @@ public class SyncService {
             LocalDate maxDate = this.repo.findMaxDate();
             if (maxDate != null && !maxDate.isBefore(end.minusDays(DATA_FRESH_DAYS))) {
                 // data not stale
-                log.debug("Sync skipped as data is fresh (maxDate={})", maxDate);
+                LOG.debug("Sync skipped as data is fresh (maxDate={})", maxDate);
                 return;
             }
-            this.lastSyncAttempt = now;
             List<ExchangeRateRow> rows = this.bankService.retrieveRates(start, end);
             saveToDb(rows);
-            log.info("Sync completed with stored {} rates ({}..{})", rows.size(), start, end);
+            this.lastSyncAttempt = now;
+            LOG.info("Sync completed with stored {} rates ({}..{})", rows.size(), start, end);
         } finally {
             this.lock.unlock();
         }

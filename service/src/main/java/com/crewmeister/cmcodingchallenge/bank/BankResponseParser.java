@@ -15,7 +15,7 @@ import java.util.Map;
 
 @Component
 public class BankResponseParser {
-    private static final Logger log = LoggerFactory.getLogger(BankResponseParser.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BankResponseParser.class);
     private static final String DIM_CURRENCY = "BBK_STD_CURRENCY";
     private static final String DIM_TIME_PERIOD = "TIME_PERIOD";
     private static final double WARN_SKIP_RATIO = 0.50;
@@ -95,10 +95,10 @@ public class BankResponseParser {
         if (totalProcessed > 0) {
             double skipRatio = (double) skippedTotal / totalProcessed;
             if (skipRatio >= WARN_SKIP_RATIO) {
-                log.warn("Parsed exchange rates with high skip ratio: parsedRows={}, skippedSeries={}, skippedObservations={}",
+                LOG.warn("Parsed exchange rates with high skip ratio: parsedRows={}, skippedSeries={}, skippedObservations={}",
                         parsedRows, skippedSeries, skippedObservations);
-            } else if (log.isDebugEnabled()) {
-                log.debug("Parsed exchange rates: parsedRows={}, skippedSeries={}, skippedObservations={}",
+            } else if (LOG.isDebugEnabled()) {
+                LOG.debug("Parsed exchange rates: parsedRows={}, skippedSeries={}, skippedObservations={}",
                         parsedRows, skippedSeries, skippedObservations);
             }
         }
