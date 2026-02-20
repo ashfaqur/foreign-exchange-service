@@ -23,7 +23,7 @@ public class SyncService {
     private final ExchangeRateRepository repo;
 
     private final ReentrantLock lock = new ReentrantLock();
-    private volatile Instant lastSyncAttempt = Instant.EPOCH;
+    private Instant lastSyncAttempt = Instant.EPOCH;
 
     public SyncService(BankService bankService, ExchangeRateRepository repo) {
         this.bankService = bankService;
@@ -37,37 +37,33 @@ public class SyncService {
 
     @Transactional
     public void syncLastDaysIfStale(int days) {
-        // simpple rate-limit 
-        if (Instant.now().isBefore(lastSyncAttempt.plus(MIN_SYNC_INTERVAL))) {
+        if (!this.lock.tryLock()){
+            // prevent multiple threads requesting data update at the same time
             return;
         }
-
-        if (!lock.tryLock()) return;
+        if (Instant.now().isBefore(this.lastSyncAttempt.plus(MIN_SYNC_INTERVAL))) {
+            // no need to sync if already done recently (rate limit)
+            return;
+        }
         try {
-            lastSyncAttempt = Instant.now();
-
             LocalDate end = LocalDate.now();
             LocalDate start = end.minusDays(days);
 
-            // simple stale rule
-            LocalDate maxDate = repo.findMaxDate();
+            // simple stale data check if few days old
+            LocalDate maxDate = this.repo.findMaxDate();
             if (maxDate != null && !maxDate.isBefore(end.minusDays(2))) {
-                // good enough recent data
+                // data not stale
                 return;
             }
-
-            List<ExchangeRateRow> rows = bankService.retrieveRates(start, end);
-            save(rows);
-
+            List<ExchangeRateRow> rows = this.bankService.retrieveRates(start, end);
+            // Convert the row to entiies for storing to db
+            List<ExchangeRateEntity> entities = rows.stream()
+                    .map(row -> new ExchangeRateEntity(row.date(), row.currency(), row.rate()))
+                    .toList();
+            this.repo.saveAll(entities);
         } finally {
-            lock.unlock();
+            this.lastSyncAttempt = Instant.now();
+            this.lock.unlock();
         }
-    }
-
-    private void save(List<ExchangeRateRow> rows) {
-        List<ExchangeRateEntity> entities = rows.stream()
-                .map(r -> new ExchangeRateEntity(r.date(), r.currency(), r.rate()))
-                .toList();
-        repo.saveAll(entities);
     }
 }

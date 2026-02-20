@@ -14,5 +14,5 @@ public interface ExchangeRateRepository extends JpaRepository<ExchangeRateEntity
     @Query("SELECT DISTINCT e.id.currency FROM ExchangeRateEntity e ORDER BY e.id.currency")
     List<String> findDistinctCurrencies();
 
-    boolean existsByIdDate(LocalDate rateDate);
+    boolean existsByIdDate(LocalDate date);
 }
