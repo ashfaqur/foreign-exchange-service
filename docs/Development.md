@@ -157,3 +157,62 @@ This can cause a long wait time, so need to the specify dates to keep response t
 
 https://api.statistiken.bundesbank.de/rest/data/BBEX3/D..EUR.BB.AC.000?startPeriod=2026-01-01&endPeriod=2026-01-31&format=sdmx_json
 
+Implemented a working REST Client Call to retrieve exchange rates from BB
+
+
+# Data model
+
+Define the data model for storing the data in the DB, before diving into the execution flow.
+
+
+Table for storing rate data
+
+┌───────────────────────────────────────┐
+│            exchange_rate              │
+├───────────────────────────────────────┤
+│ rate_date   DATE        (PK)          │
+│ currency    VARCHAR(3)  (PK)          │
+│ rate        DECIMAL(19,8)             │
+└───────────────────────────────────────┘
+
+Primary Key: (rate_date, currency)
+
+
+```sql
+CREATE TABLE exchange_rate (
+    rate_date      DATE        NOT NULL,
+    currency       VARCHAR(3)  NOT NULL,
+    rate           DECIMAL(19,8) NOT NULL,
+
+    created_at     TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at     TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT pk_exchange_rate PRIMARY KEY (rate_date, currency)
+);
+
+CREATE INDEX idx_exchange_rate_currency ON exchange_rate(currency);
+CREATE INDEX idx_exchange_rate_date ON exchange_rate(rate_date);
+```
+
+
+# Get Currency Logic Flow 
+
+
+Boot sequence
+
+- Check sync state:
+  max(rate_date) in exchange_rate
+- Default time window for checking last 30 days
+- Check if data missing within that window
+- Send request to BB to get missing data
+- Store in DB
+- Continue Boot
+
+Get currencies
+- Controller receives request.
+- Service checks if the data is outdated
+  - if sync recently do nothing
+  - otherwise request to BB to update db
+- Query currenies from the DB
+- Return list
+
