@@ -4,11 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.http.client.ClientHttpResponse;
 
 import java.io.IOException;
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.Objects;
@@ -16,7 +14,6 @@ import java.util.Objects;
 @Component
 public class BankRestClient {
 
-    private static final String BASE_URL = "https://api.statistiken.bundesbank.de";
     private static final String REQUEST_PATH = "/rest/data/BBEX3/D..EUR.BB.AC.000";
     private static final String RESPONSE_FORMAT = "sdmx_json";
 
@@ -29,10 +26,14 @@ public class BankRestClient {
     public JsonNode fetchRates(LocalDate start, LocalDate end) {
         validateRange(start, end);
 
-        URI requestUri = buildRequestUri(start, end);
-        return restClient
+        return this.restClient
                 .get()
-                .uri(requestUri)
+                .uri(uriBuilder -> uriBuilder
+                        .path(REQUEST_PATH)
+                        .queryParam("format", RESPONSE_FORMAT)
+                        .queryParam("startPeriod", start)
+                        .queryParam("endPeriod", end)
+                        .build())
                 .retrieve()
                 .onStatus(HttpStatusCode::is4xxClientError, (req, res) -> {
                     throw new BundesbankClientException(
@@ -43,16 +44,6 @@ public class BankRestClient {
                             res.getStatusCode().value(), extractErrorResponseBodyInfo(res));
                 })
                 .body(JsonNode.class);
-    }
-
-    public URI buildRequestUri(LocalDate start, LocalDate end) {
-        return UriComponentsBuilder.fromUriString(BASE_URL)
-                .path(REQUEST_PATH)
-                .queryParam("format", RESPONSE_FORMAT)
-                .queryParam("startPeriod", start)
-                .queryParam("endPeriod", end)
-                .build()
-                .toUri();
     }
 
     private static void validateRange(LocalDate start, LocalDate end) {

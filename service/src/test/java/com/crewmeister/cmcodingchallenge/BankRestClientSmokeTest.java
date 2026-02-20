@@ -3,12 +3,14 @@ package com.crewmeister.cmcodingchallenge;
 import com.crewmeister.cmcodingchallenge.bank.BankRestClient;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.web.client.RestClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDate;
 
+@SpringBootTest
 class BankRestClientSmokeTest {
 
     @Test

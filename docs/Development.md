@@ -216,3 +216,23 @@ Get currencies
 - Query currenies from the DB
 - Return list
 
+
+# Sync Service
+
+Service responsible for requesting new data via bank service and updating the database
+
+# Architecture
+
+Setup the end to end flow for get Currency
+
+1. Add the H2 and Spring Data JPA dependencies in pom.xml
+2. Setup the h2 configuration in application.properties
+3. BankService is responsibile for client call to the Bundesbank to fetch data
+4. ExchangeRateRow represents entity (date, currency, rate) returned by BankService as a list
+5. Define the data model:
+   - Table: exchange_rate
+   - ExchangeRateId (date and currency) make up the composite primary key of the table
+   - ExchangeRateEntity is the data model entity with ExchangeRateId and rate
+   - ExchangeRateRepository is the JPA repository with defined database queries
+6. SyncService responsible for requesting new data with BankService and updating the database
+7. CurrencyService is responsible for handling the requests from the CurrencyController

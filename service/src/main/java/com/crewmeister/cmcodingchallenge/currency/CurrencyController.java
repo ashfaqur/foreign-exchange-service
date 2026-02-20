@@ -17,24 +17,24 @@ import java.util.List;
 public class CurrencyController {
 
     private final BankService bankService;
-    public CurrencyController(BankService bankService){
+    private final CurrencyService currencyService;
+
+    public CurrencyController(BankService bankService, CurrencyService currencyService) {
         this.bankService = bankService;
+        this.currencyService = currencyService;
     }
 
     @GetMapping("/rates/test")
     public ResponseEntity<List<ExchangeRateRow>> testRates() {
         LocalDate start = LocalDate.of(2026, 2, 18);
-        LocalDate end   = LocalDate.of(2026, 2, 19);
+        LocalDate end = LocalDate.of(2026, 2, 19);
 
         List<ExchangeRateRow> items = bankService.retrieveRates(start, end);
         return ResponseEntity.ok(items);
     }
 
     @GetMapping("/currencies")
-    public ResponseEntity<ArrayList<CurrencyConversionRates>> getCurrencies() {
-        ArrayList<CurrencyConversionRates> currencyConversionRates = new ArrayList<CurrencyConversionRates>();
-        currencyConversionRates.add(new CurrencyConversionRates(2.5));
-
-        return new ResponseEntity<ArrayList<CurrencyConversionRates>>(currencyConversionRates, HttpStatus.OK);
+    public ResponseEntity<List<String>> getCurrencies() {
+        return ResponseEntity.ok(currencyService.getCurrencies());
     }
 }
