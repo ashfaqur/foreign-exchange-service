@@ -1,7 +1,9 @@
 package com.crewmeister.cmcodingchallenge.model;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -15,4 +17,28 @@ public interface ExchangeRateRepository extends JpaRepository<ExchangeRateEntity
     List<String> findDistinctCurrencies();
 
     boolean existsByIdDate(LocalDate date);
+
+    @Query("""
+           SELECT COUNT(e)
+           FROM ExchangeRateEntity e
+           WHERE (:currency IS NULL OR UPPER(e.id.currency) = UPPER(:currency))
+           AND (:start IS NULL OR e.id.date >= :start)
+           AND (:end IS NULL OR e.id.date <= :end)
+       """)
+    long countRates(@Param("start") LocalDate start,
+                    @Param("end") LocalDate end,
+                    @Param("currency") String currency);
+
+    @Query("""
+          SELECT e
+          FROM ExchangeRateEntity e
+          WHERE (:currency IS NULL OR UPPER(e.id.currency) = UPPER(:currency))
+          AND (:start IS NULL OR e.id.date >= :start)
+          AND (:end IS NULL OR e.id.date <= :end)
+          ORDER BY e.id.date ASC, e.id.currency ASC
+        """)
+    List<ExchangeRateEntity> findRates(@Param("start") LocalDate start,
+                                       @Param("end") LocalDate end,
+                                       @Param("currency") String currency,
+                                       Pageable pageable);
 }

@@ -236,3 +236,5 @@ Setup the end to end flow for get Currency
    - ExchangeRateRepository is the JPA repository with defined database queries
 6. SyncService responsible for requesting new data with BankService and updating the database
 7. CurrencyService is responsible for handling the requests from the CurrencyController
+
+# 

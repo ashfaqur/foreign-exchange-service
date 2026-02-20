@@ -2,6 +2,7 @@ package com.crewmeister.cmcodingchallenge.currency;
 
 import com.crewmeister.cmcodingchallenge.bank.BankService;
 import com.crewmeister.cmcodingchallenge.bank.ExchangeRateRow;
+import com.crewmeister.cmcodingchallenge.dto.RatesResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,6 +33,12 @@ public class CurrencyController {
         List<ExchangeRateRow> items = bankService.retrieveRates(start, end);
         return ResponseEntity.ok(items);
     }
+
+
+//    @GetMapping("/rates")
+//    public ResponseEntity<RatesResponse> getRates() {
+//        return ResponseEntity.ok();
+//    }
 
     @GetMapping("/currencies")
     public ResponseEntity<List<String>> getCurrencies() {
