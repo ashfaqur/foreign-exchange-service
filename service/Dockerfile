@@ -13,6 +13,6 @@ WORKDIR /app
 RUN apt-get update \
   && apt-get install -y --no-install-recommends curl \
   && rm -rf /var/lib/apt/lists/*
-COPY --from=build /workspace/target/eu-fx-service.jar /app/eu-fx-service.jar
+COPY --from=build /workspace/target/eur-fx-service.jar /app/eur-fx-service.jar
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "/app/eu-fx-service.jar"]
+ENTRYPOINT ["java", "-jar", "/app/eur-fx-service.jar"]

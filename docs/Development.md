@@ -274,5 +274,8 @@ GET /rates/{date}?currency=USD
 
 Add Sync on boot
 
+# Docker
 
+- Add docker and compose files
+- Added info and health actuator endpoints
 

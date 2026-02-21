@@ -3,10 +3,12 @@ package com.crewmeister.cmcodingchallenge.sync;
 import com.crewmeister.cmcodingchallenge.bank.ExchangeRateRow;
 import com.crewmeister.cmcodingchallenge.model.ExchangeRateEntity;
 import com.crewmeister.cmcodingchallenge.model.ExchangeRateRepository;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Component
 public class DbWriter {
 
     private final ExchangeRateRepository repo;
