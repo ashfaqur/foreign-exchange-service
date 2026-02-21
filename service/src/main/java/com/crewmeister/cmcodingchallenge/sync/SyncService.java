@@ -14,7 +14,6 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
-
 @Service
 public class SyncService {
 
@@ -23,59 +22,48 @@ public class SyncService {
     private static final int DEFAULT_DAYS = 30;
     private static final int MAX_DAYS = 90;
     private static final Duration MIN_SYNC_INTERVAL = Duration.ofHours(6);
-    private static final int DATA_FRESH_DAYS = 2;
 
     private final BankService bankService;
     private final ExchangeRateRepository repo;
+    private final DbWriter dbWriter;
 
     private final ReentrantLock lock = new ReentrantLock();
     private Instant lastSyncAttempt = Instant.EPOCH;
 
-    public SyncService(BankService bankService, ExchangeRateRepository repo) {
+    public SyncService(BankService bankService, ExchangeRateRepository repo, DbWriter dbWriter) {
         this.bankService = bankService;
         this.repo = repo;
+        this.dbWriter = dbWriter;
     }
-
 
     public void syncLastDaysIfStale() {
-        syncLastDaysIfStale(DEFAULT_DAYS);
+        LocalDate end = LocalDate.now();
+        LocalDate start = end.minusDays(DEFAULT_DAYS);
+        syncRangeIfNeeded(start, end);
     }
-    
-    public void syncLastDaysIfStale(int days) {
-        if (days <= 0 ){
-            throw new IllegalArgumentException("days must be greater than zero");
-        }
-         if (days > MAX_DAYS ){
-            throw new IllegalArgumentException("days cannot be greater than {}".formatted(MAX_DAYS));
-        }
 
-        if (!this.lock.tryLock()){
-            // prevent multiple threads requesting data update at the same time
+    public void syncDayIfNeeded(LocalDate date) {
+        syncRangeIfNeeded(date, date);
+    }
+
+    public void syncRangeIfNeeded(LocalDate start, LocalDate end) {
+        long days = validateInput(start, end);
+        if (!this.lock.tryLock()) {
             LOG.debug("Sync skipped as another sync is already running");
             return;
         }
-    
         try {
-            Instant now = Instant.now();
-            Instant timeForNextSync = this.lastSyncAttempt.plus(MIN_SYNC_INTERVAL);
-            if (now.isBefore(timeForNextSync)) {
-                // no need to sync if already done recently (rate limit)
-                LOG.debug("Sync skipped as rate-limited until {}", timeForNextSync);
+            if (isRangeCoveredInDb(start, end, days)) {
+                LOG.debug("Sync not needed; range already covered ({}..{})", start, end);
                 return;
             }
-
-            LocalDate end = LocalDate.now();
-            LocalDate start = end.minusDays(days);
-
-            // simple stale data check if few days old
-            LocalDate maxDate = this.repo.findMaxDate();
-            if (maxDate != null && !maxDate.isBefore(end.minusDays(DATA_FRESH_DAYS))) {
-                // data not stale
-                LOG.debug("Sync skipped as data is fresh (maxDate={})", maxDate);
-                return;
+            Instant now = Instant.now();
+            Instant nextAllowed = this.lastSyncAttempt.plus(MIN_SYNC_INTERVAL);
+            if (now.isBefore(nextAllowed)) {
+                LOG.debug("Although synced recently, requesting from BB due to missing data");
             }
             List<ExchangeRateRow> rows = this.bankService.retrieveRates(start, end);
-            saveToDb(rows);
+            this.dbWriter.saveToDb(rows);
             this.lastSyncAttempt = now;
             LOG.info("Sync completed with stored {} rates ({}..{})", rows.size(), start, end);
         } finally {
@@ -83,12 +71,28 @@ public class SyncService {
         }
     }
 
-    @Transactional
-    void saveToDb(List<ExchangeRateRow> rows) {
-        // Convert the row to entiies for storing to db
-        List<ExchangeRateEntity> entities = rows.stream()
-                .map(r -> new ExchangeRateEntity(r.date(), r.currency(), r.rate()))
-                .toList();
-        this.repo.saveAll(entities);
+    private static long validateInput(LocalDate start, LocalDate end){
+        if (start == null || end == null) {
+            throw new IllegalArgumentException("start and end dates must be provided");
+        }
+        if (end.isBefore(start)) {
+            throw new IllegalArgumentException("end date must be greater than or equal to start date");
+        }
+        long daysInclusive = java.time.temporal.ChronoUnit.DAYS.between(start, end) + 1;
+        if (daysInclusive <= 0) {
+            throw new IllegalArgumentException("date range must be at least 1 day");
+        }
+        if (daysInclusive > MAX_DAYS) {
+            throw new IllegalArgumentException("date range cannot be greater than " + MAX_DAYS + " days");
+        }
+        return daysInclusive;
+    }
+
+    /**
+     * Checks if the db already has info for the given dates
+     */
+    private boolean isRangeCoveredInDb(LocalDate start, LocalDate end, long daysInclusive) {
+        long distinctDates = this.repo.countDistinctDates(start, end);
+        return distinctDates >= daysInclusive;
     }
 }

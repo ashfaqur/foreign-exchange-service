@@ -39,4 +39,13 @@ public interface ExchangeRateRepository extends JpaRepository<ExchangeRateEntity
 
     Optional<ExchangeRateEntity> findByIdDateAndIdCurrency(LocalDate date, String currency);
 
+
+    @Query("""
+            SELECT COUNT(DISTINCT e.id.date)
+            FROM ExchangeRateEntity e
+            WHERE e.id.date >= :start AND e.id.date <= :end
+        """)
+    long countDistinctDates(@Param("start") LocalDate start,
+                            @Param("end") LocalDate end);
+
 }

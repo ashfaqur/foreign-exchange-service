@@ -22,10 +22,9 @@ public class CurrencyConversionService {
         this.repo = repo;
     }
 
-
     public ConversionResponse convertToEur(LocalDate date, String currency, BigDecimal foreignCurrencyAmount) {
         validateInput(date, currency, foreignCurrencyAmount);
-        this.syncService.syncLastDaysIfStale();
+        this.syncService.syncDayIfNeeded(date);
         String normalizedCurrency = normalizeCurrency(currency);
 
         // Handling the special case of EUR -> EUR, just return the same amount rounded

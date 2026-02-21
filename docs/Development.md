@@ -270,3 +270,9 @@ GET /rates/{date}?currency=USD
 4. new endpoint for this feature
   GET /conversions/to-eur?date&currency&amount
 
+# Startup
+
+Add Sync on boot
+
+
+
