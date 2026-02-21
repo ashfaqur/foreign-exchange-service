@@ -279,3 +279,7 @@ Add Sync on boot
 - Add docker and compose files
 - Added info and health actuator endpoints
 
+# Documentation
+- Added swagger UI
+- Added AI usage doc
+
