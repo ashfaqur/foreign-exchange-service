@@ -27,4 +27,14 @@ public interface ExchangeRateRepository extends JpaRepository<ExchangeRateEntity
     long countRates(@Param("start") LocalDate start,
                     @Param("end") LocalDate end,
                     @Param("currency") String currency);
+
+    @Query("""
+            SELECT e
+            FROM ExchangeRateEntity e
+            WHERE e.id.date = :date
+              AND (:currency IS NULL OR UPPER(e.id.currency) = UPPER(:currency))
+            ORDER BY e.id.currency ASC
+        """)
+    List<ExchangeRateEntity> findByDateAndOptionalCurrency(@Param("date") LocalDate date,
+                                                           @Param("currency") String currency);
 }

@@ -48,7 +48,7 @@ GET /rates?start=YYYY-MM-DD&end=YYYY-MM-DD&currency=USD&limit=1000&offset=0
 
 ```json
 GET /rates/{date}
-GET /v1/rates/{date}?currency=USD   (optional)
+GET /rates/{date}?currency=USD   (optional)
 -> 
 {
   "base": "EUR",
@@ -221,7 +221,7 @@ Get currencies
 
 Service responsible for requesting new data via bank service and updating the database
 
-# Architecture
+# User story 1 implementation 
 
 Setup the end to end flow for get Currency
 
@@ -237,4 +237,26 @@ Setup the end to end flow for get Currency
 6. SyncService responsible for requesting new data with BankService and updating the database
 7. CurrencyService is responsible for handling the requests from the CurrencyController
 
-# 
+# User story 2: rates
+
+1. DTO for response
+2. Extend the JPA repository
+   - count of rates
+   - get rates with query params
+3. Extend the Currency Service to query db
+4. /rates in the Currency Controller
+
+
+# User story 3: rates of a single day
+
+```json
+GET /rates/{date}
+GET /rates/{date}?currency=USD
+```
+
+1. DTO for response
+2. Extend the JPA repository
+   - find rate by date and currency
+3. Extend the Currency Service to query db
+4. /rates/date in the Currency Controller
+5. add Rest controller advice for error handling

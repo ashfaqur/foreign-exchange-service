@@ -2,14 +2,12 @@ package com.crewmeister.cmcodingchallenge.currency;
 
 import com.crewmeister.cmcodingchallenge.bank.BankService;
 import com.crewmeister.cmcodingchallenge.bank.ExchangeRateRow;
+import com.crewmeister.cmcodingchallenge.dto.RatesByDateResponse;
 import com.crewmeister.cmcodingchallenge.dto.RatesResponse;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -38,6 +36,11 @@ public class CurrencyController {
         return ResponseEntity.ok(items);
     }
 
+    @GetMapping("/currencies")
+    public ResponseEntity<List<String>> getCurrencies() {
+        return ResponseEntity.ok(currencyService.getCurrencies());
+    }
+
 
     @GetMapping("/rates")
     public ResponseEntity<RatesResponse> getRates(
@@ -62,8 +65,13 @@ public class CurrencyController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/currencies")
-    public ResponseEntity<List<String>> getCurrencies() {
-        return ResponseEntity.ok(currencyService.getCurrencies());
+
+    @GetMapping("/rates/{date}")
+    public ResponseEntity<RatesByDateResponse> getRatesByDate(
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate date,
+            @RequestParam(required = false) String currency
+    ) {
+        return ResponseEntity.ok(currencyService.getRatesByDate(date, currency));
     }
 }

@@ -2,15 +2,19 @@ package com.crewmeister.cmcodingchallenge.currency;
 
 import com.crewmeister.cmcodingchallenge.dto.PageMeta;
 import com.crewmeister.cmcodingchallenge.dto.RateItem;
+import com.crewmeister.cmcodingchallenge.dto.RatesByDateResponse;
 import com.crewmeister.cmcodingchallenge.dto.RatesResponse;
 import com.crewmeister.cmcodingchallenge.model.ExchangeRateEntity;
 import com.crewmeister.cmcodingchallenge.model.ExchangeRateRepository;
 import com.crewmeister.cmcodingchallenge.sync.SyncService;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 @Service
 public class CurrencyService {
@@ -69,11 +73,25 @@ public class CurrencyService {
             }
         }
     }
-
     private String normalizeCurrency(String currency) {
         if (currency == null || currency.isBlank()) {
             return null;
         }
         return currency.trim().toUpperCase(Locale.ROOT);
+    }
+
+    public RatesByDateResponse getRatesByDate(LocalDate date, String currency) {
+        this.syncService.syncLastDaysIfStale();
+        String normalizedCurrency = normalizeCurrency(currency);
+        List<ExchangeRateEntity> rows =
+                this.repo.findByDateAndOptionalCurrency(date, normalizedCurrency);
+        if (rows.isEmpty()) {
+            throw new RateNotFoundException("No rate exists for that date");
+        }
+        Map<String, BigDecimal> rates = new LinkedHashMap<>();
+        for (ExchangeRateEntity e : rows) {
+            rates.put(e.getCurrency(), e.getRate());
+        }
+        return new RatesByDateResponse("EUR", date, rates);
     }
 }
