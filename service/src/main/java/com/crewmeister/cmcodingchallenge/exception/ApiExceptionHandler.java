@@ -14,8 +14,7 @@ public class ApiExceptionHandler {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public String handleTypeMismatch(MethodArgumentTypeMismatchException e) {
-        // specifically for invalid LocalDate in path/query
-        return "Invalid date format";
+        return "Invalid input";
     }
 
     @ExceptionHandler(RateNotFoundException.class)

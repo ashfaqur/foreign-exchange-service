@@ -6,6 +6,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface ExchangeRateRepository extends JpaRepository<ExchangeRateEntity, ExchangeRateId>, ExchangeRateRepositoryCustom {
 
@@ -14,8 +15,6 @@ public interface ExchangeRateRepository extends JpaRepository<ExchangeRateEntity
 
     @Query("SELECT DISTINCT e.id.currency FROM ExchangeRateEntity e ORDER BY e.id.currency")
     List<String> findDistinctCurrencies();
-
-    boolean existsByIdDate(LocalDate date);
 
     @Query("""
            SELECT COUNT(e)
@@ -37,4 +36,7 @@ public interface ExchangeRateRepository extends JpaRepository<ExchangeRateEntity
         """)
     List<ExchangeRateEntity> findByDateAndOptionalCurrency(@Param("date") LocalDate date,
                                                            @Param("currency") String currency);
+
+    Optional<ExchangeRateEntity> findByIdDateAndIdCurrency(LocalDate date, String currency);
+
 }

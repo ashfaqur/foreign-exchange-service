@@ -256,7 +256,17 @@ GET /rates/{date}?currency=USD
 
 1. DTO for response
 2. Extend the JPA repository
-   - find rate by date and currency
+   - find rate by date with currency as option
 3. Extend the Currency Service to query db
 4. /rates/date in the Currency Controller
 5. add Rest controller advice for error handling
+
+# Final User story 4: foreign currency amount to eur conversion
+
+1. DTO for response
+2. Extend the JPA repository
+   - find rate for composite primary key of date and currency
+3. New Conversion Service to handle currency conversion
+4. new endpoint for this feature
+  GET /conversions/to-eur?date&currency&amount
+

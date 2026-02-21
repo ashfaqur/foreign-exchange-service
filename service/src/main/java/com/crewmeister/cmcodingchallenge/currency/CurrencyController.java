@@ -1,16 +1,14 @@
 package com.crewmeister.cmcodingchallenge.currency;
 
-import com.crewmeister.cmcodingchallenge.bank.BankService;
-import com.crewmeister.cmcodingchallenge.bank.ExchangeRateRow;
+import com.crewmeister.cmcodingchallenge.dto.ConversionResponse;
 import com.crewmeister.cmcodingchallenge.dto.RatesByDateResponse;
 import com.crewmeister.cmcodingchallenge.dto.RatesResponse;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.springframework.format.annotation.DateTimeFormat.ISO;
@@ -19,21 +17,12 @@ import static org.springframework.format.annotation.DateTimeFormat.ISO;
 @RequestMapping("/api")
 public class CurrencyController {
 
-    private final BankService bankService;
     private final CurrencyService currencyService;
+    private final CurrencyConversionService conversionService;
 
-    public CurrencyController(BankService bankService, CurrencyService currencyService) {
-        this.bankService = bankService;
+    public CurrencyController(CurrencyService currencyService, CurrencyConversionService conversionService) {
         this.currencyService = currencyService;
-    }
-
-    @GetMapping("/rates/test")
-    public ResponseEntity<List<ExchangeRateRow>> testRates() {
-        LocalDate start = LocalDate.of(2026, 2, 18);
-        LocalDate end = LocalDate.of(2026, 2, 19);
-
-        List<ExchangeRateRow> items = bankService.retrieveRates(start, end);
-        return ResponseEntity.ok(items);
+        this.conversionService = conversionService;
     }
 
     @GetMapping("/currencies")
@@ -73,5 +62,14 @@ public class CurrencyController {
             @RequestParam(required = false) String currency
     ) {
         return ResponseEntity.ok(currencyService.getRatesByDate(date, currency));
+    }
+
+    @GetMapping("/conversions/to-eur")
+    public ResponseEntity<ConversionResponse> convertToEur(
+            @RequestParam @DateTimeFormat(iso = ISO.DATE) LocalDate date,
+            @RequestParam String currency,
+            @RequestParam BigDecimal amount
+    ) {
+        return ResponseEntity.ok(this.conversionService.convertToEur(date, currency, amount));
     }
 }
