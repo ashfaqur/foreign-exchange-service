@@ -22,19 +22,41 @@ public class ExchangeRateId implements Serializable {
     protected ExchangeRateId() {
     }
 
+    /**
+     * Creates a composite rate identifier.
+     *
+     * @param date rate date
+     * @param currency currency code
+     */
     public ExchangeRateId(LocalDate date, String currency) {
         this.date = Objects.requireNonNull(date, "date");
         this.currency = Objects.requireNonNull(currency, "currency");
     }
 
+    /**
+     * Returns the rate date.
+     *
+     * @return rate date
+     */
     public LocalDate getDate() {
         return date;
     }
 
+    /**
+     * Returns the currency code.
+     *
+     * @return currency code
+     */
     public String getCurrency() {
         return currency;
     }
 
+    /**
+     * Compares composite key values.
+     *
+     * @param o object to compare
+     * @return true when date and currency are equal
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -47,6 +69,11 @@ public class ExchangeRateId implements Serializable {
                 Objects.equals(this.currency, given.currency);
     }
 
+    /**
+     * Computes hash code from date and currency.
+     *
+     * @return hash code for this composite key
+     */
     @Override
     public int hashCode() {
         return Objects.hash(this.date, this.currency);

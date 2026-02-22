@@ -16,7 +16,11 @@ public class RestClientConfig {
     private static final int CONNECT_TIMEOUT = 5;
     private static final int READ_TIMEOUT = 10;
 
-
+    /**
+     * Builds the shared RestClient for Bundesbank API requests.
+     *
+     * @return configured RestClient instance
+     */
     @Bean
     public RestClient restClient(){
         ClientHttpRequestFactorySettings settings = ClientHttpRequestFactorySettings

@@ -26,22 +26,45 @@ public class SyncService {
 
     private final ReentrantLock lock = new ReentrantLock();
 
+    /**
+     * Creates the sync service.
+     *
+     * @param bankService service used to fetch Bundesbank data
+     * @param repo repository used for coverage checks
+     * @param dbWriter writer used for transactional persistence
+     */
     public SyncService(BankService bankService, ExchangeRateRepository repo, DbWriter dbWriter) {
         this.bankService = bankService;
         this.repo = repo;
         this.dbWriter = dbWriter;
     }
 
+    /**
+     * Syncs EUR-based rates for the default recent time window.
+     */
     public void syncLastDays() {
         LocalDate end = LocalDate.now();
         LocalDate start = end.minusDays(DEFAULT_DAYS);
         syncRange(start, end, false);
     }
 
+    /**
+     * Syncs EUR-based rates for a single day.
+     *
+     * @param date date to sync
+     */
     public void syncDay(LocalDate date) {
         syncRange(date, date, false);
     }
 
+    /**
+     * Syncs EUR-based rates for an inclusive date range.
+     *
+     * @param start start date (inclusive)
+     * @param end end date (inclusive)
+     * @param force whether to bypass DB coverage checks
+     * @throws IllegalArgumentException if the date range is invalid
+     */
     public void syncRange(LocalDate start, LocalDate end, boolean force) {
         long days = validateInput(start, end);
         if (!this.lock.tryLock()) {

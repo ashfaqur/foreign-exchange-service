@@ -19,10 +19,24 @@ public class BankRestClient {
 
     private final RestClient restClient;
 
+    /**
+     * Creates a Bundesbank REST client wrapper.
+     *
+     * @param restClient configured Spring REST client
+     */
     public BankRestClient(RestClient restClient) {
         this.restClient = restClient;
     }
 
+    /**
+     * Fetches EUR-based exchange rates for an inclusive date range.
+     *
+     * @param start start date (inclusive)
+     * @param end end date (inclusive)
+     * @return raw Bundesbank JSON response
+     * @throws IllegalArgumentException if end is before start
+     * @throws NullPointerException if start or end is null
+     */
     public JsonNode fetchRates(LocalDate start, LocalDate end) {
         validateRange(start, end);
 

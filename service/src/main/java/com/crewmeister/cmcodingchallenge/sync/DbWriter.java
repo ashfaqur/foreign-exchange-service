@@ -13,10 +13,20 @@ public class DbWriter {
 
     private final ExchangeRateRepository repo;
 
+    /**
+     * Creates the DB writer for exchange rates.
+     *
+     * @param repo exchange rate repository
+     */
     public DbWriter(ExchangeRateRepository repo) {
         this.repo = repo;
     }
 
+    /**
+     * Persists exchange rates as entities in a single transaction.
+     *
+     * @param rows parsed exchange rate rows
+     */
     @Transactional
     public void saveToDb(List<ExchangeRateRow> rows) {
         List<ExchangeRateEntity> entities = rows.stream()

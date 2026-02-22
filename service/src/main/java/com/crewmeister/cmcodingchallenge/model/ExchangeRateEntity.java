@@ -22,27 +22,59 @@ public class ExchangeRateEntity {
     protected ExchangeRateEntity() {
     }
 
+    /**
+     * Creates a rate entity.
+     *
+     * @param date rate date
+     * @param currency currency code
+     * @param rate rate value
+     */
     public ExchangeRateEntity(LocalDate date, String currency, BigDecimal rate) {
         this.id = new ExchangeRateId(date, currency);
         this.rate = rate;
     }
 
+    /**
+     * Returns the composite identifier.
+     *
+     * @return exchange rate identifier
+     */
     public ExchangeRateId getId() {
         return this.id;
     }
 
+    /**
+     * Returns the rate date.
+     *
+     * @return rate date
+     */
     public LocalDate getDate() {
         return this.id.getDate();
     }
 
+    /**
+     * Returns the currency code.
+     *
+     * @return currency code
+     */
     public String getCurrency() {
         return this.id.getCurrency();
     }
 
+    /**
+     * Returns the stored rate value.
+     *
+     * @return rate value
+     */
     public BigDecimal getRate() {
         return this.rate;
     }
 
+    /**
+     * Updates the stored rate value.
+     *
+     * @param rate new rate value
+     */
     public void setRate(BigDecimal rate) {
         this.rate = rate;
     }

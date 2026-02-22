@@ -20,6 +20,12 @@ public class BankResponseParser {
     private static final String DIM_TIME_PERIOD = "TIME_PERIOD";
     private static final double WARN_SKIP_RATIO = 0.50;
 
+    /**
+     * Parses a Bundesbank SDMX payload into exchange rate rows.
+     *
+     * @param root raw SDMX JSON root node
+     * @return parsed rows, or an empty list for unsupported or partial payloads
+     */
     public List<ExchangeRateRow> parseRates(JsonNode root) {
         if (!isObjectNode(root)) {
             return List.of();

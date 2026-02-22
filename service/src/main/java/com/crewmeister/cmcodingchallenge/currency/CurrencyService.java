@@ -25,20 +25,51 @@ public class CurrencyService {
     private final SyncService syncService;
     private final ExchangeRateRepository repo;
 
+    /**
+     * Creates the core service for EUR-based rate retrieval.
+     *
+     * @param syncService sync service for keeping local data fresh
+     * @param repo exchange rate repository
+     */
     public CurrencyService(SyncService syncService, ExchangeRateRepository repo) {
         this.syncService = syncService;
         this.repo = repo;
     }
 
+    /**
+     * Returns all available currency codes.
+     *
+     * @return sorted currency codes
+     */
     public List<String> getCurrencies() {
         this.syncService.syncLastDays();
         return this.repo.findDistinctCurrencies();
     }
 
+    /**
+     * Returns rates with default pagination.
+     *
+     * @param start optional start date (inclusive)
+     * @param end optional end date (inclusive)
+     * @param currency optional 3-letter currency code
+     * @return rates response
+     * @throws IllegalArgumentException if input is invalid
+     */
     public RatesResponse getRates(LocalDate start, LocalDate end, String currency) {
         return getRates(start, end, currency, DEFAULT_LIMIT, 0);
     }
 
+    /**
+     * Returns rates with optional filters and explicit pagination.
+     *
+     * @param start optional start date (inclusive)
+     * @param end optional end date (inclusive)
+     * @param currency optional 3-letter currency code
+     * @param limit page size
+     * @param offset row offset
+     * @return paginated rates response
+     * @throws IllegalArgumentException if input is invalid
+     */
     public RatesResponse getRates(LocalDate start, LocalDate end, String currency, int limit, int offset) {
         validateRatesRequest(start, end, currency, limit, offset);
         if (start != null && end != null) {
@@ -84,6 +115,14 @@ public class CurrencyService {
         return currency.trim().toUpperCase(Locale.ROOT);
     }
 
+    /**
+     * Returns EUR-based rates for a specific date.
+     *
+     * @param date date to query
+     * @param currency optional currency filter
+     * @return rates grouped by currency code
+     * @throws RateNotFoundException if no rate exists for the date
+     */
     public RatesByDateResponse getRatesByDate(LocalDate date, String currency) {
         this.syncService.syncDay(date);
         String normalizedCurrency = normalizeCurrency(currency);
@@ -99,6 +138,12 @@ public class CurrencyService {
         return new RatesByDateResponse("EUR", date, rates);
     }
 
+    /**
+     * Forces a sync for the provided inclusive date range.
+     *
+     * @param start start date (inclusive)
+     * @param end end date (inclusive)
+     */
     public void forceUpdateData(LocalDate start, LocalDate end) {
         this.syncService.syncRange(start, end, true);
     }

@@ -20,17 +20,33 @@ public class CurrencyController {
     private final CurrencyService currencyService;
     private final CurrencyConversionService conversionService;
 
+    /**
+     * Creates the currency API controller.
+     *
+     * @param currencyService service for currency and rate endpoints
+     * @param conversionService service for conversion endpoint
+     */
     public CurrencyController(CurrencyService currencyService, CurrencyConversionService conversionService) {
         this.currencyService = currencyService;
         this.conversionService = conversionService;
     }
 
+    /**
+     * Returns all available currencies for EUR-based rates.
+     *
+     * @return list of currency codes
+     */
     @GetMapping("/currencies")
     public ResponseEntity<List<String>> getCurrencies() {
         return ResponseEntity.ok(currencyService.getCurrencies());
     }
 
 
+    /**
+     * Returns EUR-based rates with optional filtering and pagination.
+     *
+     * @return paginated rates response
+     */
     @GetMapping("/rates")
     public ResponseEntity<RatesResponse> getRates(
             @RequestParam(required = false)
@@ -55,6 +71,11 @@ public class CurrencyController {
     }
 
 
+    /**
+     * Returns EUR-based rates for a single date.
+     *
+     * @return rates for the requested date
+     */
     @GetMapping("/rates/{date}")
     public ResponseEntity<RatesByDateResponse> getRatesByDate(
             @PathVariable
@@ -65,6 +86,11 @@ public class CurrencyController {
         return ResponseEntity.ok(this.currencyService.getRatesByDate(date, currency));
     }
 
+    /**
+     * Converts a foreign-currency amount to EUR for a given date.
+     *
+     * @return conversion response
+     */
     @GetMapping("/conversions/to-eur")
     public ResponseEntity<ConversionResponse> convertToEur(
             @RequestParam
@@ -76,6 +102,11 @@ public class CurrencyController {
         return ResponseEntity.ok(this.conversionService.convertToEur(date, currency, amount));
     }
 
+    /**
+     * Forces a data sync for the requested inclusive date range.
+     *
+     * @return no-content response when sync is accepted
+     */
     @PostMapping("/update")
     public ResponseEntity<Void> update(
             @RequestParam
