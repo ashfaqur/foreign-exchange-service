@@ -31,7 +31,7 @@ public class CurrencyService {
     }
 
     public List<String> getCurrencies() {
-        this.syncService.syncLastDaysIfStale();
+        this.syncService.syncLastDays();
         return this.repo.findDistinctCurrencies();
     }
 
@@ -42,9 +42,9 @@ public class CurrencyService {
     public RatesResponse getRates(LocalDate start, LocalDate end, String currency, int limit, int offset) {
         validateRatesRequest(start, end, currency, limit, offset);
         if (start != null && end != null) {
-            this.syncService.syncRangeIfNeeded(start, end);
+            this.syncService.syncRange(start, end, false);
         } else {
-            this.syncService.syncLastDaysIfStale();
+            this.syncService.syncLastDays();
         }
         String normalizedCurrency = normalizeCurrency(currency);
         long total = this.repo.countRates(start, end, normalizedCurrency);
@@ -85,7 +85,7 @@ public class CurrencyService {
     }
 
     public RatesByDateResponse getRatesByDate(LocalDate date, String currency) {
-        this.syncService.syncDayIfNeeded(date);
+        this.syncService.syncDay(date);
         String normalizedCurrency = normalizeCurrency(currency);
         List<ExchangeRateEntity> rows =
                 this.repo.findByDateAndOptionalCurrency(date, normalizedCurrency);
@@ -97,5 +97,9 @@ public class CurrencyService {
             rates.put(e.getCurrency(), e.getRate());
         }
         return new RatesByDateResponse("EUR", date, rates);
+    }
+
+    public void forceUpdateData(LocalDate start, LocalDate end) {
+        this.syncService.syncRange(start, end, true);
     }
 }

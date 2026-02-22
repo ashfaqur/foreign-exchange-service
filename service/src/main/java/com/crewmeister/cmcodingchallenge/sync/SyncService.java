@@ -2,9 +2,7 @@ package com.crewmeister.cmcodingchallenge.sync;
 
 import com.crewmeister.cmcodingchallenge.bank.BankService;
 import com.crewmeister.cmcodingchallenge.bank.ExchangeRateRow;
-import com.crewmeister.cmcodingchallenge.model.ExchangeRateEntity;
 import com.crewmeister.cmcodingchallenge.model.ExchangeRateRepository;
-import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -21,7 +19,7 @@ public class SyncService {
 
     private static final int DEFAULT_DAYS = 30;
     private static final int MAX_DAYS = 90;
-    private static final Duration MIN_SYNC_INTERVAL = Duration.ofHours(6);
+    private static final Duration MIN_SYNC_INTERVAL = Duration.ofSeconds(10);
 
     private final BankService bankService;
     private final ExchangeRateRepository repo;
@@ -36,31 +34,43 @@ public class SyncService {
         this.dbWriter = dbWriter;
     }
 
-    public void syncLastDaysIfStale() {
+    public void syncLastDays() {
         LocalDate end = LocalDate.now();
         LocalDate start = end.minusDays(DEFAULT_DAYS);
-        syncRangeIfNeeded(start, end);
+        syncRange(start, end, false);
     }
 
-    public void syncDayIfNeeded(LocalDate date) {
-        syncRangeIfNeeded(date, date);
+    public void syncDay(LocalDate date) {
+        syncRange(date, date, false);
     }
 
-    public void syncRangeIfNeeded(LocalDate start, LocalDate end) {
+
+    public void syncRange(LocalDate start, LocalDate end, boolean force) {
         long days = validateInput(start, end);
+
         if (!this.lock.tryLock()) {
+            if (force) {
+                throw new IllegalStateException("sync already running");
+            }
             LOG.debug("Sync skipped as another sync is already running");
             return;
         }
         try {
-            if (isRangeCoveredInDb(start, end, days)) {
-                LOG.debug("Sync not needed; range already covered ({}..{})", start, end);
+            if (!force && isRangeCoveredInDb(start, end, days)) {
+                LOG.debug("Sync not needed as range already covered  ({}..{}) in DB", start, end);
                 return;
             }
             Instant now = Instant.now();
             Instant nextAllowed = this.lastSyncAttempt.plus(MIN_SYNC_INTERVAL);
+            // rate limiting
             if (now.isBefore(nextAllowed)) {
-                LOG.debug("Although synced recently, requesting from BB due to missing data");
+                if (force) {
+                    throw new IllegalArgumentException(
+                            "sync is rate-limited; try again after " + nextAllowed
+                    );
+                }
+                LOG.debug("Sync skipped due to rate-limit until {}", nextAllowed);
+                return;
             }
             List<ExchangeRateRow> rows = this.bankService.retrieveRates(start, end);
             this.dbWriter.saveToDb(rows);

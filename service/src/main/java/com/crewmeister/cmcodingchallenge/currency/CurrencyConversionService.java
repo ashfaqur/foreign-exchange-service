@@ -24,7 +24,7 @@ public class CurrencyConversionService {
 
     public ConversionResponse convertToEur(LocalDate date, String currency, BigDecimal foreignCurrencyAmount) {
         validateInput(date, currency, foreignCurrencyAmount);
-        this.syncService.syncDayIfNeeded(date);
+        this.syncService.syncDay(date);
         String normalizedCurrency = normalizeCurrency(currency);
 
         // Handling the special case of EUR -> EUR, just return the same amount rounded

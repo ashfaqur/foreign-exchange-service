@@ -57,19 +57,36 @@ public class CurrencyController {
 
     @GetMapping("/rates/{date}")
     public ResponseEntity<RatesByDateResponse> getRatesByDate(
-            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            @PathVariable
+            @DateTimeFormat(iso = ISO.DATE)
             LocalDate date,
             @RequestParam(required = false) String currency
     ) {
-        return ResponseEntity.ok(currencyService.getRatesByDate(date, currency));
+        return ResponseEntity.ok(this.currencyService.getRatesByDate(date, currency));
     }
 
     @GetMapping("/conversions/to-eur")
     public ResponseEntity<ConversionResponse> convertToEur(
-            @RequestParam @DateTimeFormat(iso = ISO.DATE) LocalDate date,
+            @RequestParam
+            @DateTimeFormat(iso = ISO.DATE)
+            LocalDate date,
             @RequestParam String currency,
             @RequestParam BigDecimal amount
     ) {
         return ResponseEntity.ok(this.conversionService.convertToEur(date, currency, amount));
+    }
+
+    @PostMapping("/update")
+    public ResponseEntity<Void> update(
+            @RequestParam
+            @DateTimeFormat(iso = ISO.DATE)
+            LocalDate start,
+
+            @RequestParam
+            @DateTimeFormat(iso = ISO.DATE)
+            LocalDate end
+    ) {
+        this.currencyService.forceUpdateData(start, end);
+        return ResponseEntity.noContent().build();
     }
 }

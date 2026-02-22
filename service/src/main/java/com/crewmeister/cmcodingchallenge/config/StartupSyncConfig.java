@@ -17,7 +17,7 @@ public class StartupSyncConfig {
         return args -> {
             LOG.info("Running startup request to Bank to sync db ");
             try {
-                syncService.syncLastDaysIfStale();
+                syncService.syncLastDays();
                 LOG.debug("Startup sync finished.");
             } catch (Exception e) {
                 LOG.error("Startup sync failed", e);
