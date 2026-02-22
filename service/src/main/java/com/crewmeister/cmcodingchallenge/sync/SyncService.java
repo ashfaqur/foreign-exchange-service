@@ -19,14 +19,12 @@ public class SyncService {
 
     private static final int DEFAULT_DAYS = 30;
     private static final int MAX_DAYS = 90;
-    private static final Duration MIN_SYNC_INTERVAL = Duration.ofSeconds(10);
 
     private final BankService bankService;
     private final ExchangeRateRepository repo;
     private final DbWriter dbWriter;
 
     private final ReentrantLock lock = new ReentrantLock();
-    private Instant lastSyncAttempt = Instant.EPOCH;
 
     public SyncService(BankService bankService, ExchangeRateRepository repo, DbWriter dbWriter) {
         this.bankService = bankService;
@@ -44,10 +42,8 @@ public class SyncService {
         syncRange(date, date, false);
     }
 
-
     public void syncRange(LocalDate start, LocalDate end, boolean force) {
         long days = validateInput(start, end);
-
         if (!this.lock.tryLock()) {
             if (force) {
                 throw new IllegalStateException("sync already running");
@@ -60,21 +56,8 @@ public class SyncService {
                 LOG.debug("Sync not needed as range already covered  ({}..{}) in DB", start, end);
                 return;
             }
-            Instant now = Instant.now();
-            Instant nextAllowed = this.lastSyncAttempt.plus(MIN_SYNC_INTERVAL);
-            // rate limiting
-            if (now.isBefore(nextAllowed)) {
-                if (force) {
-                    throw new IllegalArgumentException(
-                            "sync is rate-limited; try again after " + nextAllowed
-                    );
-                }
-                LOG.debug("Sync skipped due to rate-limit until {}", nextAllowed);
-                return;
-            }
             List<ExchangeRateRow> rows = this.bankService.retrieveRates(start, end);
             this.dbWriter.saveToDb(rows);
-            this.lastSyncAttempt = now;
             LOG.info("Sync completed with stored {} rates ({}..{})", rows.size(), start, end);
         } finally {
             this.lock.unlock();
