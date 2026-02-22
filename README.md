@@ -41,7 +41,7 @@ Swagger examples are the source of truth for request/response payload shapes.
 - Get EUR-FX exchange rates for a particular day
 - Convert a foreign currency amount to EUR on a particular day
 
-## Overview
+## Data flow
 
 - On startup, the service triggers an initial sync from Bundesbank into the local H2 database.
 - For get endpoints it ensures relevant data is synced or fetch new data, then reads from DB and returns DTO responses.
@@ -65,15 +65,16 @@ Swagger examples are the source of truth for request/response payload shapes.
 | Method | Endpoint                  | Params                                   |
 | ------ | ------------------------- | ---------------------------------------- |
 | GET    | /api/currencies           | none                                     |
-| GET    | /api/rates                | start, end, currency, limit, offset      |
+| GET    | /api/rates                | start+end, currency, limit, offset       |
 | GET    | /api/rates/{date}         | path: date                               |
 | GET    | /api/conversions/to-eur   | date, currency, amount                   |
 | POST   | /api/update               | start, end                               |
 
 ## API Behaviour Notes
-- By default, `/api/rates` gets data for last 30 days, unless date ranges are given.
+- By default, `/api/rates` returns exactly the last 30 calendar days (inclusive).
+- For custom range filtering on `/api/rates`, `start` and `end` must both be provided.
 - `api/update` can force refetch data and update db for existing dates.
-- Max date range of 90 days request supported.
+- Max supported inclusive range for `/api/rates` is 90 days (otherwise `400`).
 
 ## API Examples
 
