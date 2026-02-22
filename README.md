@@ -22,7 +22,7 @@ cd service
 
 ## Service
 
-Service runs by default on: `http://localhost:8080`
+Service runs by default on: http://localhost:8080
 
 Swagger UI: http://localhost:8080/swagger-ui/index.html
 
@@ -30,6 +30,7 @@ Swagger UI: http://localhost:8080/swagger-ui/index.html
 ## Documentation:
 - Objective: `docs/Objective.md`
 - Development notes: `docs/Development.md`
+- AI usage: `docs/AI_USAGE.md`
 
 ## Implemented User Stories
 
@@ -150,6 +151,3 @@ cd service && ./mvnw test
   - Persist sync time in a dedicated sync-time table.
   - A rate limiter for external API requests
 
-## AI Usage
-
-AI usage details are documented in `docs/AI_USAGE.md`.
