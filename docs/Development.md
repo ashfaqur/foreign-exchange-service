@@ -283,3 +283,8 @@ Add Sync on boot
 - Added swagger UI
 - Added AI usage doc
 
+# Tests
+
+Tests for the core services
+
+
