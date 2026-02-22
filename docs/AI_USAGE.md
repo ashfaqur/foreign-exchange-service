@@ -81,7 +81,16 @@ AI proposed scheduling, retries, and metadata tracking. I simplified the approac
 7. Generating Unit Tests
 
 Prompt:
-
 Generate JUnit tests for this CurrencyService using Mockito, focus on core logic.
 
 AI generated test scaffolding and mock setup. I refined test names, removed redundant cases, and refined code according to code changes.
+
+8. Java doc
+
+Prompt:
+Add minimal and concise java doc to public constructors and methods
+
+9. OpenAPI doc
+
+Prompt:
+Add minimal OpenAPI doc with project title and example usage

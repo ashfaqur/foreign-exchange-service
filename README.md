@@ -25,6 +25,8 @@ cd service
 Service runs by default on: http://localhost:8080
 
 Swagger UI: http://localhost:8080/swagger-ui/index.html
+OpenAPI JSON: http://localhost:8080/v3/api-docs
+Swagger examples are the source of truth for request/response payload shapes.
 
 
 ## Documentation:
