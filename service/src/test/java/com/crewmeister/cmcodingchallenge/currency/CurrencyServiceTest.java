@@ -13,11 +13,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -81,23 +83,22 @@ class CurrencyServiceTest {
     }
 
     @Test
-    void getRatesWithoutRangeCallsSyncLastDays() {
-        when(repo.countRates(null, null, null)).thenReturn(0L);
+    void getRatesWithoutRangeUsesDefaultThirtyDayWindow() {
+        when(repo.countRates(any(LocalDate.class), any(LocalDate.class), eq(null))).thenReturn(0L);
 
         RatesResponse response = currencyService.getRates(null, null, null, 1000, 0);
 
         assertEquals("EUR", response.base());
-        assertNull(response.start());
-        assertNull(response.end());
+        assertEquals(29L, ChronoUnit.DAYS.between(response.start(), response.end()));
         assertEquals(0, response.items().size());
         assertEquals(1000, response.page().limit());
         assertEquals(0, response.page().offset());
         assertEquals(0L, response.page().total());
 
-        verify(syncService).syncLastDays();
-        verify(syncService, never()).syncRange(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyBoolean());
-        verify(repo).countRates(null, null, null);
-        verify(repo, never()).findRates(null, null, null, 1000, 0);
+        verify(syncService).syncRange(response.start(), response.end(), false);
+        verify(syncService, never()).syncLastDays();
+        verify(repo).countRates(response.start(), response.end(), null);
+        verify(repo, never()).findRates(response.start(), response.end(), null, 1000, 0);
     }
 
     @Test
@@ -122,6 +123,36 @@ class CurrencyServiceTest {
                 () -> currencyService.getRates(LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 1), null, 1000, 0));
 
         assertEquals("end must be greater than or equal to start", ex.getMessage());
+        verifyNoInteractions(syncService);
+        verifyNoInteractions(repo);
+    }
+
+    @Test
+    void getRatesThrowsWhenOnlyStartProvided() {
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> currencyService.getRates(LocalDate.of(2026, 1, 3), null, null, 1000, 0));
+
+        assertEquals("start and end must be provided together", ex.getMessage());
+        verifyNoInteractions(syncService);
+        verifyNoInteractions(repo);
+    }
+
+    @Test
+    void getRatesThrowsWhenOnlyEndProvided() {
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> currencyService.getRates(null, LocalDate.of(2026, 1, 3), null, 1000, 0));
+
+        assertEquals("start and end must be provided together", ex.getMessage());
+        verifyNoInteractions(syncService);
+        verifyNoInteractions(repo);
+    }
+
+    @Test
+    void getRatesThrowsWhenRangeIsGreaterThanMaxDays() {
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> currencyService.getRates(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 4, 1), null, 1000, 0));
+
+        assertEquals("date range cannot be greater than 90 days", ex.getMessage());
         verifyNoInteractions(syncService);
         verifyNoInteractions(repo);
     }

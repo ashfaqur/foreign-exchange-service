@@ -68,19 +68,21 @@ public class CurrencyController {
      * @return paginated rates response
      */
     @GetMapping("/rates")
-    @Operation(summary = "Get EUR-based rates collection")
+    @Operation(summary = "Get EUR-based rates collection",
+            description = "If start and end are omitted, the API returns the last 30 calendar days. " +
+                    "If a custom range is needed, both start and end must be provided together.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Rates returned",
                     content = @Content(schema = @Schema(implementation = RatesResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Invalid request input")
+            @ApiResponse(responseCode = "400", description = "Invalid request input, one-sided range, or range greater than 90 days")
     })
     public ResponseEntity<RatesResponse> getRates(
-            @Parameter(description = "Start date (inclusive)", example = "2026-01-01")
+            @Parameter(description = "Start date (inclusive). Must be provided together with end. Omit both to use default last 30 days.", example = "2026-01-01")
             @RequestParam(required = false)
             @DateTimeFormat(iso = ISO.DATE)
             LocalDate start,
 
-            @Parameter(description = "End date (inclusive)", example = "2026-01-31")
+            @Parameter(description = "End date (inclusive). Must be provided together with start. Omit both to use default last 30 days.", example = "2026-01-31")
             @RequestParam(required = false)
             @DateTimeFormat(iso = ISO.DATE)
             LocalDate end,

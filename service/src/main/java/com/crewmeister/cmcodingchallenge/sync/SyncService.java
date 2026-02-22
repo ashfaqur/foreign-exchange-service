@@ -103,6 +103,8 @@ public class SyncService {
 
     /**
      * Checks if the db already has info for the given dates
+     * Assume that a date in database means that all info for
+     * that day is fully stored
      */
     private boolean isRangeCoveredInDb(LocalDate start, LocalDate end, long daysInclusive) {
         long distinctDates = this.repo.countDistinctDates(start, end);

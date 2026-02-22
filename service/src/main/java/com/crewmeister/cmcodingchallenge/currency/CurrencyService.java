@@ -10,6 +10,7 @@ import com.crewmeister.cmcodingchallenge.sync.SyncService;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.temporal.ChronoUnit;
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -21,6 +22,8 @@ public class CurrencyService {
 
     private static final int DEFAULT_LIMIT = 1000;
     private static final int MAX_LIMIT = 5000;
+    private static final int DEFAULT_RANGE_DAYS = 30;
+    private static final int MAX_RANGE_DAYS = 90;
 
     private final SyncService syncService;
     private final ExchangeRateRepository repo;
@@ -49,8 +52,8 @@ public class CurrencyService {
     /**
      * Returns rates with default pagination.
      *
-     * @param start optional start date (inclusive)
-     * @param end optional end date (inclusive)
+     * @param start optional start date (inclusive); must be paired with end
+     * @param end optional end date (inclusive); must be paired with start
      * @param currency optional 3-letter currency code
      * @return rates response
      * @throws IllegalArgumentException if input is invalid
@@ -62,8 +65,8 @@ public class CurrencyService {
     /**
      * Returns rates with optional filters and explicit pagination.
      *
-     * @param start optional start date (inclusive)
-     * @param end optional end date (inclusive)
+     * @param start optional start date (inclusive); must be paired with end
+     * @param end optional end date (inclusive); must be paired with start
      * @param currency optional 3-letter currency code
      * @param limit page size
      * @param offset row offset
@@ -72,29 +75,24 @@ public class CurrencyService {
      */
     public RatesResponse getRates(LocalDate start, LocalDate end, String currency, int limit, int offset) {
         validateRatesRequest(start, end, currency, limit, offset);
-        if (start != null && end != null) {
-            this.syncService.syncRange(start, end, false);
-        } else {
-            this.syncService.syncLastDays();
-        }
+        DateRange range = resolveDateRange(start, end);
+        this.syncService.syncRange(range.start(), range.end(), false);
+
         String normalizedCurrency = normalizeCurrency(currency);
-        long total = this.repo.countRates(start, end, normalizedCurrency);
+        long total = this.repo.countRates(range.start(), range.end(), normalizedCurrency);
         if (offset >= total) {
-            return new RatesResponse("EUR", start, end, List.of(), new PageMeta(limit, offset, total));
+            return new RatesResponse("EUR", range.start(), range.end(), List.of(), new PageMeta(limit, offset, total));
         }
         List<ExchangeRateEntity> rows =
-                this.repo.findRates(start, end, normalizedCurrency, limit, offset);
+                this.repo.findRates(range.start(), range.end(), normalizedCurrency, limit, offset);
         List<RateItem> items = rows.stream()
                 .map(e -> new RateItem(e.getDate(), e.getCurrency(), e.getRate()))
                 .toList();
 
-        return new RatesResponse("EUR", start, end, items, new PageMeta(limit, offset, total));
+        return new RatesResponse("EUR", range.start(), range.end(), items, new PageMeta(limit, offset, total));
     }
 
     private static void validateRatesRequest(LocalDate start, LocalDate end, String currency, int limit, int offset) {
-        if (start != null && end != null && end.isBefore(start)) {
-            throw new IllegalArgumentException("end must be greater than or equal to start");
-        }
         if (limit < 1 || limit > MAX_LIMIT) {
             throw new IllegalArgumentException("limit must be between 1 and " + MAX_LIMIT);
         }
@@ -108,6 +106,29 @@ public class CurrencyService {
             }
         }
     }
+
+    private static DateRange resolveDateRange(LocalDate start, LocalDate end) {
+        if (start == null && end == null) {
+            LocalDate resolvedEnd = LocalDate.now();
+            LocalDate resolvedStart = resolvedEnd.minusDays(DEFAULT_RANGE_DAYS - 1L);
+            return new DateRange(resolvedStart, resolvedEnd);
+        }
+        if (start == null || end == null) {
+            throw new IllegalArgumentException("start and end must be provided together");
+        }
+        if (end.isBefore(start)) {
+            throw new IllegalArgumentException("end must be greater than or equal to start");
+        }
+
+        long daysInclusive = ChronoUnit.DAYS.between(start, end) + 1L;
+        if (daysInclusive > MAX_RANGE_DAYS) {
+            throw new IllegalArgumentException("date range cannot be greater than " + MAX_RANGE_DAYS + " days");
+        }
+        return new DateRange(start, end);
+    }
+
+    private record DateRange(LocalDate start, LocalDate end) {}
+
     private String normalizeCurrency(String currency) {
         if (currency == null || currency.isBlank()) {
             return null;

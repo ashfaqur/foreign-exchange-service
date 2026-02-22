@@ -145,6 +145,17 @@ class CurrencyControllerWebMvcTest {
     }
 
     @Test
+    void getRatesWithOnlyStartReturnsBadRequest() throws Exception {
+        when(currencyService.getRates(LocalDate.of(2026, 1, 1), null, null, 1000, 0))
+                .thenThrow(new IllegalArgumentException("start and end must be provided together"));
+
+        mockMvc.perform(get("/api/rates")
+                        .param("start", "2026-01-01"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("start and end must be provided together"));
+    }
+
+    @Test
     void getRatesByDateSuccessAllCurrencies() throws Exception {
         Map<String, BigDecimal> rates = new LinkedHashMap<>();
         rates.put("USD", new BigDecimal("1.0923"));
