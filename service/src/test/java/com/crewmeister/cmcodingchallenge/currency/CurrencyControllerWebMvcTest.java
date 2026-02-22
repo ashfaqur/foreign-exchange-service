@@ -6,6 +6,7 @@ import com.crewmeister.cmcodingchallenge.dto.RateItem;
 import com.crewmeister.cmcodingchallenge.dto.RatesByDateResponse;
 import com.crewmeister.cmcodingchallenge.dto.RatesResponse;
 import com.crewmeister.cmcodingchallenge.exception.ApiExceptionHandler;
+import com.crewmeister.cmcodingchallenge.sync.SyncInProgressException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -153,6 +154,16 @@ class CurrencyControllerWebMvcTest {
                         .param("start", "2026-01-01"))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string("start and end must be provided together"));
+    }
+
+    @Test
+    void getRatesSyncInProgressReturnsServiceUnavailable() throws Exception {
+        when(currencyService.getRates(null, null, null, 1000, 0))
+                .thenThrow(new SyncInProgressException("sync in progress, retry"));
+
+        mockMvc.perform(get("/api/rates"))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(content().string("sync in progress, retry"));
     }
 
     @Test

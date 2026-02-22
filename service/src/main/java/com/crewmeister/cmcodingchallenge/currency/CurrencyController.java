@@ -55,7 +55,8 @@ public class CurrencyController {
                             schema = @Schema(type = "string"),
                             arraySchema = @Schema(example = "[\"AUD\",\"USD\"]")
                     ))
-            )
+            ),
+            @ApiResponse(responseCode = "503", description = "Sync in progress, retry")
     })
     public ResponseEntity<List<String>> getCurrencies() {
         return ResponseEntity.ok(currencyService.getCurrencies());
@@ -74,7 +75,8 @@ public class CurrencyController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Rates returned",
                     content = @Content(schema = @Schema(implementation = RatesResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Invalid request input, one-sided range, or range greater than 90 days")
+            @ApiResponse(responseCode = "400", description = "Invalid request input, one-sided range, or range greater than 90 days"),
+            @ApiResponse(responseCode = "503", description = "Sync in progress, retry")
     })
     public ResponseEntity<RatesResponse> getRates(
             @Parameter(description = "Start date (inclusive). Must be provided together with end. Omit both to use default last 30 days.", example = "2026-01-01")
@@ -115,7 +117,8 @@ public class CurrencyController {
             @ApiResponse(responseCode = "200", description = "Rates returned",
                     content = @Content(schema = @Schema(implementation = RatesByDateResponse.class))),
             @ApiResponse(responseCode = "400", description = "Invalid request input"),
-            @ApiResponse(responseCode = "404", description = "No rate exists for that date")
+            @ApiResponse(responseCode = "404", description = "No rate exists for that date"),
+            @ApiResponse(responseCode = "503", description = "Sync in progress, retry")
     })
     public ResponseEntity<RatesByDateResponse> getRatesByDate(
             @Parameter(description = "Rate date", example = "2026-02-18")
@@ -139,7 +142,8 @@ public class CurrencyController {
             @ApiResponse(responseCode = "200", description = "Conversion returned",
                     content = @Content(schema = @Schema(implementation = ConversionResponse.class))),
             @ApiResponse(responseCode = "400", description = "Invalid request input"),
-            @ApiResponse(responseCode = "404", description = "No rate found")
+            @ApiResponse(responseCode = "404", description = "No rate found"),
+            @ApiResponse(responseCode = "503", description = "Sync in progress, retry")
     })
     public ResponseEntity<ConversionResponse> convertToEur(
             @Parameter(description = "Conversion date", example = "2026-02-18")
@@ -164,7 +168,8 @@ public class CurrencyController {
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Sync triggered"),
             @ApiResponse(responseCode = "400", description = "Invalid request input"),
-            @ApiResponse(responseCode = "500", description = "Sync failed")
+            @ApiResponse(responseCode = "500", description = "Sync failed"),
+            @ApiResponse(responseCode = "503", description = "Sync in progress, retry")
     })
     public ResponseEntity<Void> update(
             @Parameter(description = "Start date (inclusive)", example = "2026-01-01")

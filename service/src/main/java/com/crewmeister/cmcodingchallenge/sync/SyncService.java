@@ -64,12 +64,12 @@ public class SyncService {
      * @param end end date (inclusive)
      * @param force whether to bypass DB coverage checks
      * @throws IllegalArgumentException if the date range is invalid
+     * @throws SyncInProgressException if another sync is already running
      */
     public void syncRange(LocalDate start, LocalDate end, boolean force) {
         long days = validateInput(start, end);
         if (!this.lock.tryLock()) {
-            LOG.debug("Sync skipped as another sync is already running");
-            return;
+            throw new SyncInProgressException("sync in progress, retry");
         }
         try {
             if (!force && isRangeCoveredInDb(start, end, days)) {

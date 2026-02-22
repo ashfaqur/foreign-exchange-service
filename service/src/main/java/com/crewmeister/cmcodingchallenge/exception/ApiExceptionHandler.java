@@ -1,6 +1,7 @@
 package com.crewmeister.cmcodingchallenge.exception;
 
 import com.crewmeister.cmcodingchallenge.currency.RateNotFoundException;
+import com.crewmeister.cmcodingchallenge.sync.SyncInProgressException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -45,6 +46,18 @@ public class ApiExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public String handleBadRequest(IllegalArgumentException e) {
+        return e.getMessage();
+    }
+
+    /**
+     * Handles concurrent sync attempts while a sync is already running.
+     *
+     * @param e sync-in-progress exception
+     * @return retry message
+     */
+    @ExceptionHandler(SyncInProgressException.class)
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    public String handleSyncInProgress(SyncInProgressException e) {
         return e.getMessage();
     }
 }
