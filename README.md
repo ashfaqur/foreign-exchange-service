@@ -68,6 +68,11 @@ Swagger UI: http://localhost:8080/swagger-ui/index.html
 | GET    | /api/conversions/to-eur   | date, currency, amount                   |
 | POST   | /api/update               | start, end                               |
 
+## API Behaviour Notes
+- By default, `/api/rates` gets data for last 30 days, unless date ranges are given.
+- `api/update` can force refetch data and update db for existing dates.
+- Max date range of 90 days request supported.
+
 ## API Examples
 
 ### 1) List currencies
@@ -150,4 +155,3 @@ cd service && ./mvnw test
 ## Future improvements:
   - Persist sync time in a dedicated sync-time table.
   - A rate limiter for external API requests
-
