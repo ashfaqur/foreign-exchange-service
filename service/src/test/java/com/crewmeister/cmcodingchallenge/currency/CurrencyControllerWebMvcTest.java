@@ -318,5 +318,5 @@ class CurrencyControllerWebMvcTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string("end date must be greater than or equal to start date"));
     }
-    
+
 }

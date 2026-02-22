@@ -45,9 +45,6 @@ public class SyncService {
     public void syncRange(LocalDate start, LocalDate end, boolean force) {
         long days = validateInput(start, end);
         if (!this.lock.tryLock()) {
-            if (force) {
-                throw new IllegalStateException("sync already running");
-            }
             LOG.debug("Sync skipped as another sync is already running");
             return;
         }
