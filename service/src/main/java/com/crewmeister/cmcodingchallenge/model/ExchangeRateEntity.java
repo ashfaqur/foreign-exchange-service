@@ -25,9 +25,9 @@ public class ExchangeRateEntity {
     /**
      * Creates a rate entity.
      *
-     * @param date rate date
+     * @param date     rate date
      * @param currency currency code
-     * @param rate rate value
+     * @param rate     rate value
      */
     public ExchangeRateEntity(LocalDate date, String currency, BigDecimal rate) {
         this.id = new ExchangeRateId(date, currency);

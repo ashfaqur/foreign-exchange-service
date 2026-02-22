@@ -7,11 +7,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
+
 @Service
 public class SyncService {
 
@@ -30,8 +29,8 @@ public class SyncService {
      * Creates the sync service.
      *
      * @param bankService service used to fetch Bundesbank data
-     * @param repo repository used for coverage checks
-     * @param dbWriter writer used for transactional persistence
+     * @param repo        repository used for coverage checks
+     * @param dbWriter    writer used for transactional persistence
      */
     public SyncService(BankService bankService, ExchangeRateRepository repo, DbWriter dbWriter) {
         this.bankService = bankService;
@@ -61,10 +60,10 @@ public class SyncService {
      * Syncs EUR-based rates for an inclusive date range.
      *
      * @param start start date (inclusive)
-     * @param end end date (inclusive)
+     * @param end   end date (inclusive)
      * @param force whether to bypass DB coverage checks
      * @throws IllegalArgumentException if the date range is invalid
-     * @throws SyncInProgressException if another sync is already running
+     * @throws SyncInProgressException  if another sync is already running
      */
     public void syncRange(LocalDate start, LocalDate end, boolean force) {
         long days = validateInput(start, end);
@@ -84,7 +83,7 @@ public class SyncService {
         }
     }
 
-    private static long validateInput(LocalDate start, LocalDate end){
+    private static long validateInput(LocalDate start, LocalDate end) {
         if (start == null || end == null) {
             throw new IllegalArgumentException("start and end dates must be provided");
         }

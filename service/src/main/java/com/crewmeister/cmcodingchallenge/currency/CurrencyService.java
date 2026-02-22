@@ -10,8 +10,8 @@ import com.crewmeister.cmcodingchallenge.sync.SyncService;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.temporal.ChronoUnit;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -32,7 +32,7 @@ public class CurrencyService {
      * Creates the core service for EUR-based rate retrieval.
      *
      * @param syncService sync service for keeping local data fresh
-     * @param repo exchange rate repository
+     * @param repo        exchange rate repository
      */
     public CurrencyService(SyncService syncService, ExchangeRateRepository repo) {
         this.syncService = syncService;
@@ -52,8 +52,8 @@ public class CurrencyService {
     /**
      * Returns rates with default pagination.
      *
-     * @param start optional start date (inclusive); must be paired with end
-     * @param end optional end date (inclusive); must be paired with start
+     * @param start    optional start date (inclusive); must be paired with end
+     * @param end      optional end date (inclusive); must be paired with start
      * @param currency optional 3-letter currency code
      * @return rates response
      * @throws IllegalArgumentException if input is invalid
@@ -65,11 +65,11 @@ public class CurrencyService {
     /**
      * Returns rates with optional filters and explicit pagination.
      *
-     * @param start optional start date (inclusive); must be paired with end
-     * @param end optional end date (inclusive); must be paired with start
+     * @param start    optional start date (inclusive); must be paired with end
+     * @param end      optional end date (inclusive); must be paired with start
      * @param currency optional 3-letter currency code
-     * @param limit page size
-     * @param offset row offset
+     * @param limit    page size
+     * @param offset   row offset
      * @return paginated rates response
      * @throws IllegalArgumentException if input is invalid
      */
@@ -127,7 +127,8 @@ public class CurrencyService {
         return new DateRange(start, end);
     }
 
-    private record DateRange(LocalDate start, LocalDate end) {}
+    private record DateRange(LocalDate start, LocalDate end) {
+    }
 
     private String normalizeCurrency(String currency) {
         if (currency == null || currency.isBlank()) {
@@ -139,7 +140,7 @@ public class CurrencyService {
     /**
      * Returns EUR-based rates for a specific date.
      *
-     * @param date date to query
+     * @param date     date to query
      * @param currency optional currency filter
      * @return rates grouped by currency code
      * @throws RateNotFoundException if no rate exists for the date
@@ -163,7 +164,7 @@ public class CurrencyService {
      * Forces a sync for the provided inclusive date range.
      *
      * @param start start date (inclusive)
-     * @param end end date (inclusive)
+     * @param end   end date (inclusive)
      */
     public void forceUpdateData(LocalDate start, LocalDate end) {
         this.syncService.syncRange(start, end, true);

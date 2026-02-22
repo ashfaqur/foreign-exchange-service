@@ -2,9 +2,9 @@ package com.crewmeister.cmcodingchallenge.bank;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
-import org.springframework.http.client.ClientHttpResponse;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -32,10 +32,10 @@ public class BankRestClient {
      * Fetches EUR-based exchange rates for an inclusive date range.
      *
      * @param start start date (inclusive)
-     * @param end end date (inclusive)
+     * @param end   end date (inclusive)
      * @return raw Bundesbank JSON response
      * @throws IllegalArgumentException if end is before start
-     * @throws NullPointerException if start or end is null
+     * @throws NullPointerException     if start or end is null
      */
     public JsonNode fetchRates(LocalDate start, LocalDate end) {
         validateRange(start, end);

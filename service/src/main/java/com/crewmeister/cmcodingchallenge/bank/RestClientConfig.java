@@ -22,7 +22,7 @@ public class RestClientConfig {
      * @return configured RestClient instance
      */
     @Bean
-    public RestClient restClient(){
+    public RestClient restClient() {
         ClientHttpRequestFactorySettings settings = ClientHttpRequestFactorySettings
                 .defaults()
                 .withConnectTimeout(Duration.ofSeconds(CONNECT_TIMEOUT))

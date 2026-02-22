@@ -32,7 +32,7 @@ public class CurrencyController {
     /**
      * Creates the currency API controller.
      *
-     * @param currencyService service for currency and rate endpoints
+     * @param currencyService   service for currency and rate endpoints
      * @param conversionService service for conversion endpoint
      */
     public CurrencyController(CurrencyService currencyService, CurrencyConversionService conversionService) {

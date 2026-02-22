@@ -1,10 +1,6 @@
 package com.crewmeister.cmcodingchallenge.currency;
 
-import com.crewmeister.cmcodingchallenge.dto.ConversionResponse;
-import com.crewmeister.cmcodingchallenge.dto.PageMeta;
-import com.crewmeister.cmcodingchallenge.dto.RateItem;
-import com.crewmeister.cmcodingchallenge.dto.RatesByDateResponse;
-import com.crewmeister.cmcodingchallenge.dto.RatesResponse;
+import com.crewmeister.cmcodingchallenge.dto.*;
 import com.crewmeister.cmcodingchallenge.exception.ApiExceptionHandler;
 import com.crewmeister.cmcodingchallenge.sync.SyncInProgressException;
 import org.junit.jupiter.api.Test;
@@ -22,18 +18,10 @@ import java.util.List;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(controllers = CurrencyController.class)
 @Import(ApiExceptionHandler.class)

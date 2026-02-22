@@ -9,4 +9,5 @@ public record PageMeta(
         int offset,
         @Schema(description = "Total rows matching the filter", example = "123456")
         long total
-) {}
+) {
+}

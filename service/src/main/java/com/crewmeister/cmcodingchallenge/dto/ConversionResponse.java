@@ -22,12 +22,14 @@ public record ConversionResponse(
             String currency,
             @Schema(description = "Amount value", example = "100.00")
             BigDecimal amount
-    ) {}
+    ) {
+    }
 
     public record Rate(
             @Schema(description = "Rate pair label", example = "EUR/USD")
             String pair,
             @Schema(description = "Rate value", example = "1.0923")
             BigDecimal value
-    ) {}
+    ) {
+    }
 }

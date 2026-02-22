@@ -60,14 +60,14 @@ public class BankResponseParser {
             JsonNode series = entry.getValue();
 
             Integer currencyIndex = parseCurrencyIndex(seriesKey);
-            if (currencyIndex == null || currencyIndex < 0 || currencyIndex >= currencies.size()){
+            if (currencyIndex == null || currencyIndex < 0 || currencyIndex >= currencies.size()) {
                 skippedSeries++;
                 continue;
             }
             String currency = currencies.get(currencyIndex);
 
             JsonNode observations = series.path("observations");
-            if (!observations.isObject()){
+            if (!observations.isObject()) {
                 skippedSeries++;
                 continue;
             }
@@ -75,7 +75,7 @@ public class BankResponseParser {
             while (obsIt.hasNext()) {
                 var obsEntry = obsIt.next();
                 Integer timeIdx = tryParseInt(obsEntry.getKey());
-                if (timeIdx == null || timeIdx < 0 || timeIdx >= dates.size()){
+                if (timeIdx == null || timeIdx < 0 || timeIdx >= dates.size()) {
                     skippedObservations++;
                     continue;
                 }
@@ -86,7 +86,7 @@ public class BankResponseParser {
                 }
                 JsonNode obsArray = obsEntry.getValue();
                 BigDecimal rate = extractRate(obsArray);
-                if (rate == null){
+                if (rate == null) {
                     skippedObservations++;
                     continue;
                 }
@@ -198,7 +198,7 @@ public class BankResponseParser {
         }
         if (value.isTextual()) {
             String text = value.textValue();
-            if (text == null){
+            if (text == null) {
                 return null;
             }
             text = text.trim();

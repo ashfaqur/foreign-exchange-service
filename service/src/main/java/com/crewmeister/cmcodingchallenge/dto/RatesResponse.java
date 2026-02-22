@@ -17,4 +17,5 @@ public record RatesResponse(
         List<RateItem> items,
         @Schema(description = "Pagination metadata")
         PageMeta page
-) {}
+) {
+}

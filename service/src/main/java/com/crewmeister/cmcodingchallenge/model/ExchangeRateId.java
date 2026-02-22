@@ -1,13 +1,10 @@
 package com.crewmeister.cmcodingchallenge.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 
 import java.io.Serializable;
 import java.time.LocalDate;
-
-
-import jakarta.persistence.Column;
-
 import java.util.Objects;
 
 @Embeddable
@@ -25,7 +22,7 @@ public class ExchangeRateId implements Serializable {
     /**
      * Creates a composite rate identifier.
      *
-     * @param date rate date
+     * @param date     rate date
      * @param currency currency code
      */
     public ExchangeRateId(LocalDate date, String currency) {
@@ -62,7 +59,7 @@ public class ExchangeRateId implements Serializable {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof ExchangeRateId given)){
+        if (!(o instanceof ExchangeRateId given)) {
             return false;
         }
         return Objects.equals(this.date, given.date) &&

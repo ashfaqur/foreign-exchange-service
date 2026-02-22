@@ -1,6 +1,6 @@
 package com.crewmeister.cmcodingchallenge.currency;
 
-public class RateNotFoundException extends RuntimeException{
+public class RateNotFoundException extends RuntimeException {
     /**
      * Creates an exception for missing rate data.
      *

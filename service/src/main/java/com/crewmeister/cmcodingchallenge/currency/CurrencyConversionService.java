@@ -21,7 +21,7 @@ public class CurrencyConversionService {
      * Creates the currency conversion service.
      *
      * @param syncService sync service for date-level refresh
-     * @param repo exchange rate repository
+     * @param repo        exchange rate repository
      */
     public CurrencyConversionService(SyncService syncService, ExchangeRateRepository repo) {
         this.syncService = syncService;
@@ -31,12 +31,12 @@ public class CurrencyConversionService {
     /**
      * Converts a foreign-currency amount into EUR for a given date.
      *
-     * @param date conversion date
-     * @param currency foreign currency code
+     * @param date                  conversion date
+     * @param currency              foreign currency code
      * @param foreignCurrencyAmount amount in foreign currency
      * @return conversion result in EUR
      * @throws IllegalArgumentException if input is invalid
-     * @throws RateNotFoundException if no rate exists for the requested date and currency
+     * @throws RateNotFoundException    if no rate exists for the requested date and currency
      */
     public ConversionResponse convertToEur(LocalDate date, String currency, BigDecimal foreignCurrencyAmount) {
         validateInput(date, currency, foreignCurrencyAmount);

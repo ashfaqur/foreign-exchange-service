@@ -12,4 +12,5 @@ public record RateItem(
         String currency,
         @Schema(description = "Exchange rate where 1 EUR equals rate units of currency", example = "1.0923")
         BigDecimal rate
-) {}
+) {
+}
