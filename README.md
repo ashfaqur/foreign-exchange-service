@@ -12,6 +12,10 @@ docker compose up
 
 ## Run Manually
 
+Requirements:
+- Java 21
+- Maven 3
+
 ```bash
 cd service
 ./mvnw spring-boot:run
@@ -20,3 +24,7 @@ cd service
 ## Service
 
 Service runs by default on: `http://localhost:8080`
+Swagger UI: http://localhost:8080/swagger-ui/index.html
+
+
+
