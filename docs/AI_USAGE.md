@@ -25,7 +25,63 @@ What worked best was using AI to discuss the high-level approach first, then cre
 
 AI was also a great tool for learning new ideas and concepts. For this purpose browser based model was preferrable since it is more verbose and can describe varietly of diifferent approaches which facilitate learning.
 
-My recommendation is to use AI like a pair-programming buddy and guide it through the implementation.
+My thinking is to use AI like a pair-programming buddy and guide it through the implementation.
 
 ## Example usages
 
+1. Finding Bundesbank API
+
+Prompt:
+
+Where can I find the official Bundesbank API for daily exchange rates? Show an example request and response format.
+
+AI summarized the available endpoints and showed example
+
+2. Refining the REST API
+
+Prompt:
+
+Refactor this Spring Boot endpoint to support pagination and enforce a maximum limit of 5000 results.
+
+AI suggested adding limit validation and a pagination abstraction. I adopted the limit validation and 
+the response structure.
+
+3. Designing the Database Model
+
+Prompt:
+
+What do you think of this design for a database table to store daily exchange rates per currency with efficient lookups by date and currency?
+
+AI suggested using a composite primary key (date, currency) instead of a surrogate ID. I accepted this because it reflects the natural uniqueness constraint and simplifies queries.
+
+4. High-Level Design Discussion
+
+Prompt:
+
+Help me design the high-level architecture for a service that syncs exchange rates and exposes them via a REST API.
+
+AI outlined a service–repository–controller structure and suggested clear separation of concerns. I used this as a starting point and refined it to keep the implementation simple.
+
+5. Building Components per User Story
+
+Prompt:
+
+Generate a Spring service class that fetches exchange rates from an external API and stores them in a repository.
+
+AI provided a code skeleton with dependency injection and error handling. I refactored it for simplicity and adjusted method signatures to match my data model.
+
+6. Refining Sync Logic
+
+Prompt:
+
+Suggest a strategy to sync exchange rates only if local data is stale.
+
+AI proposed scheduling, retries, and metadata tracking. I simplified the approach to a basic “sync last N days if stale” check.
+
+7. Generating Unit Tests
+
+Prompt:
+
+Generate JUnit tests for this CurrencyService using Mockito, focus on core logic.
+
+AI generated test scaffolding and mock setup. I refined test names, removed redundant cases, refined code accorinding to code changes.
