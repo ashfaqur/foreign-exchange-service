@@ -25,16 +25,10 @@ cd service
 Service runs by default on: http://localhost:8080
 
 Swagger UI: http://localhost:8080/swagger-ui/index.html
+
 OpenAPI JSON: http://localhost:8080/v3/api-docs
-Swagger examples are the source of truth for request/response payload shapes.
 
-
-## Documentation:
-- Objective: `docs/Objective.md`
-- Development notes: `docs/Development.md`
-- AI usage: `docs/AI_USAGE.md`
-
-## Implemented User Stories
+## User Stories
 
 - List of all available currencies
 - Get all EUR-FX exchange rates as a collection (with filtering and pagination)
@@ -150,7 +144,6 @@ Run tests:
 cd service && ./mvnw test
 ```
 
-
 ## Notes and Limitations
 - Uses H2 file database for assignment simplicity.
 - Sync strategy currently fetches from Bundesbank and upserts into local DB.
@@ -158,3 +151,8 @@ cd service && ./mvnw test
 ## Future improvements:
   - Persist sync time in a dedicated sync-time table.
   - A rate limiter for external API requests
+
+## Documentation:
+- [Objective](docs/Objective.md)
+- [Development notes](docs/Development.md)
+- [AI usage](docs/AI_USAGE.md)
